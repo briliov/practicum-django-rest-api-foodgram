@@ -15,7 +15,7 @@ jobs:
           postgres:13.10
         env:
           POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: <PASSWORD>
+          POSTGRES_PASSWORD: 12sdas312
           POSTGRES_DB: django_db
         ports:
           - 5432:5432
