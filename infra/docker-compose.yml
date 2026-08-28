@@ -10,6 +10,11 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
 
+  backend:
+    container_name: foodgram-backend
+    build: ../backend
+    env_file: .env
+
   frontend:
     container_name: frontend
     build: ../frontend
