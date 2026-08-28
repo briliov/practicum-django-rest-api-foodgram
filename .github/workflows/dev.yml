@@ -15,7 +15,7 @@ jobs:
           postgres:13.10
         env:
           POSTGRES_USER: django_user
-          POSTGRES_PASSWORD: <PASSWORD>
+          POSTGRES_PASSWORD: 12sdas312
           POSTGRES_DB: django_db
         ports:
           - 5432:5432
@@ -63,7 +63,7 @@ jobs:
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
-          tokens: ${{ secrets.TELEGRAM_TOKEN }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             Tests in development branch:
             ----------------------------
