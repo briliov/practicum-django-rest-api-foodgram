@@ -14,7 +14,11 @@ services:
   backend:
     container_name: foodgram-backend
     build: ../backend
+    volumes:
+      - ../backend:/app
+    command: python manage.py runserver 0.0.0.0:8000
     env_file: .env
+
 
   frontend:
     container_name: foodgram-frontend
@@ -32,6 +36,6 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
     depends_on:
-      - foodgram-database
-      - foodgram-backend
-      - foodgram-frontend
+      - database
+      - backend
+      - frontend
