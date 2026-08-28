@@ -1,15 +1,20 @@
 """Settings for backend foodgram project."""
 
-
+import os
 from pathlib import Path
+
+from decouple import Csv, config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = ''
+SECRET_KEY = config('SECRET_KEY',
+                    default='django-insecure-test-key-placeholder-12345')
 
-DEBUG = True
+DEBUG = config('DEBUG_STATUS', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS',
+                       default='localhost,127.0.0.1',
+                       cast=Csv())
 
 
 INSTALLED_APPS = [
