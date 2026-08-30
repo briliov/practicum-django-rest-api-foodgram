@@ -7,7 +7,7 @@ volumes:
 services:
   database:
     container_name: foodgram-database
-    image: postgres:13
+    image: postgres:15
     env_file: .env
     volumes:
       - db:/var/lib/postgresql/data
