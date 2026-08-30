@@ -10,4 +10,4 @@ RUN pip install -r requirements.txt --no-cache-dir && pip install gunicorn==25.3
 
 COPY . .
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "core.wsgi"]
+CMD python manage.py migrate && python manage.py collectstatic --no-input && gunicorn --bind 0.0.0.0:8000 core.wsgi
