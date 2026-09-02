@@ -102,3 +102,19 @@ class Recipe(NamedModel):
         verbose_name='Recipe tags'
     )
     cooking_time = models.PositiveSmallIntegerField('Cooking time')
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='favorites',
+        verbose_name='Favorites recipes',
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='favorites_by',
+        verbose_name='Favorite recipes',
+        on_delete=models.CASCADE
+    )
+
