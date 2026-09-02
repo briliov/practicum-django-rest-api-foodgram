@@ -1,3 +1,5 @@
+"""Utils for API Foodgram."""
+
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
