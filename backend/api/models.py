@@ -79,3 +79,26 @@ class Tag(NamedModel):
 
     def __str__(self):
         return f'{self.name}'
+
+
+class Recipe(NamedModel):
+    """Model Recipe"""
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Recipe author',
+    )
+    image = models.ImageField('Recipe image', upload_to='recipes/images/')
+    text = models.TextField('Recipe text')
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='recipes_with_ingredient',
+        verbose_name='Recipe ingredients'
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
+        verbose_name='Recipe tags'
+    )
+    cooking_time = models.PositiveSmallIntegerField('Cooking time')
