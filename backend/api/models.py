@@ -5,6 +5,37 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class Following(models.Model):
+    """Users following model."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriptions',
+        verbose_name='User',
+    )
+
+    following = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='followers',
+        verbose_name='Following',
+    )
+
+    class Meta:
+        """Meta class for model Following"""
+        verbose_name = 'Subscription'
+        verbose_name_plural = 'Subscriptions'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user} followed to {self.following}'
+
+
 class NamedModel(models.Model):
     """Abstract named model."""
     name = models.CharField('Name', max_length=256)
