@@ -35,3 +35,16 @@ class Ingredient(NamedModel):
 
     def __str__(self):
         return f'{self.name}'
+
+
+class Tag(NamedModel):
+    """Model Tag"""
+    slug = models.SlugField('Uniq slug', max_length=256, unique=True)
+
+    class Meta(NamedModel.Meta):
+        """Meta class for model Tag"""
+        verbose_name = 'Tag'
+        verbose_name_plural = 'Tags'
+
+    def __str__(self):
+        return f'{self.name}'
