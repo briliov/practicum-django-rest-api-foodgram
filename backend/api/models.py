@@ -1,21 +1,34 @@
 """Models for API."""
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 
-User = get_user_model()
+
+class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
+    avatar = models.ImageField(
+        upload_to='users/',
+        blank=True,
+        null=True,
+        verbose_name='avatar'
+    )
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+
+    def __str__(self):
+        return self.email
 
 
 class Following(models.Model):
     """Users following model."""
     user = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='subscriptions',
         verbose_name='User',
     )
 
     following = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='followers',
         verbose_name='Following',
@@ -84,7 +97,7 @@ class Tag(NamedModel):
 class Recipe(NamedModel):
     """Model Recipe"""
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Recipe author',
@@ -106,7 +119,7 @@ class Recipe(NamedModel):
 
 class Favorite(models.Model):
     user = models.ForeignKey(
-        User,
+        CustomUser,
         related_name='favorites',
         verbose_name='Favorites recipes',
         on_delete=models.CASCADE
@@ -121,7 +134,7 @@ class Favorite(models.Model):
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
-        User,
+        CustomUser,
         related_name='shopping_cart',
         verbose_name='Favorites recipes',
         on_delete=models.CASCADE
