@@ -11,6 +11,10 @@ services:
     env_file: .env
     volumes:
       - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 2s
+      retries: 5
 
   backend:
     container_name: foodgram-backend
@@ -19,7 +23,8 @@ services:
       - ../backend:/app
     env_file: .env
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   frontend:
     container_name: foodgram-frontend
