@@ -87,3 +87,16 @@ class UsersSerializer(UsersCreateSerializer, AvatarSerializer):
             return False
         return Following.objects.filter(user=request.user, following=obj
                                         ).exists()
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Serializer for Tags"""
+
+    class Meta:
+        """Meta class of TagsSerializer."""
+        model = Tag
+        fields = (
+            'id',
+            'name',
+            'slug'
+        )
