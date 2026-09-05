@@ -106,8 +106,8 @@ class Recipe(NamedModel):
     text = models.TextField('Recipe text')
     ingredients = models.ManyToManyField(
         Ingredient,
-        related_name='recipes_with_ingredient',
-        verbose_name='Recipe ingredients'
+        related_name='recipes',
+        verbose_name='Recipe ingredients',
     )
     tags = models.ManyToManyField(
         Tag,
@@ -115,6 +115,20 @@ class Recipe(NamedModel):
         verbose_name='Recipe tags'
     )
     cooking_time = models.PositiveSmallIntegerField('Cooking time')
+
+
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    ingredients = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=('recipe', 'ingredients'),
+                name='unique_recipe_ingredient'
+            )
+        ]
 
 
 class Favorite(models.Model):
@@ -141,7 +155,7 @@ class ShoppingCart(models.Model):
     )
     recipe = models.ForeignKey(
         Recipe,
-        related_name='shopping_cart_by_user',
+        related_name='shopping_carts',
         verbose_name='Favorite recipes',
         on_delete=models.CASCADE
     )
