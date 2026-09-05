@@ -100,3 +100,16 @@ class TagSerializer(serializers.ModelSerializer):
             'name',
             'slug'
         )
+
+
+class IngredientsSerializer(serializers.ModelSerializer):
+    """Serializer for Ingredients"""
+
+    class Meta:
+        """Meta class of IngredientsSerializer."""
+        model = Ingredient
+        fields = (
+            'id',
+            'name',
+            'measurement_unit'
+        )
