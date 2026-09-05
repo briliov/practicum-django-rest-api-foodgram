@@ -72,3 +72,13 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(
+    list=extend_schema(summary='Список тегов'),
+    retrieve=extend_schema(summary='Получение тега',)
+)
+@extend_schema(tags=['Теги'])
+class TagsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Endpoint for Tags."""
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    pagination_class = None
