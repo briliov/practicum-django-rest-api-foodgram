@@ -72,6 +72,22 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
+@extend_schema_view(
+    list=extend_schema(summary='Список ингредиентов'),
+    retrieve=extend_schema(summary='Получение ингредиента')
+)
+@extend_schema(tags=['Ингредиенты'])
+class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Endpoint for Ingredients."""
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientsSerializer
+    pagination_class = None
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
+    ordering_fields = ['name',]
+
+
 @extend_schema_view(
     list=extend_schema(summary='Список тегов'),
     retrieve=extend_schema(summary='Получение тега',)
