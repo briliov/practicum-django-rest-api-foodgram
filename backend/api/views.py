@@ -1,17 +1,22 @@
 """Views for API users application."""
 
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets, status, mixins, filters, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, status, mixins, permissions
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.pagination import LimitOffsetPagination
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .serializers import (UsersSerializer, IngredientsSerializer,
                           TagSerializer, RecipeSerializer, AvatarSerializer,
-                          UsersCreateSerializer)
-from .models import Ingredient, Tag, Recipe, Following
+                          UsersCreateSerializer, ShoppingCartSerializer,
+                          RecipeWriteSerializer)
+from .models import Ingredient, Tag, Recipe, Following, ShoppingCart
+from .filters import IngredientFilter, RecipeFilter
+from .permissions import IsAuthorOrReadOnly
 
 User = get_user_model()
 
@@ -98,3 +103,32 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
+
+
+@extend_schema_view(
+    list=extend_schema(summary='Список рецептов'),
+    create=extend_schema(summary='Создание рецепта'),
+    retrieve=extend_schema(summary='Получение рецепта'),
+    partial_update=extend_schema(summary='Обновление рецепта'),
+)
+@extend_schema(tags=['Рецепты'])
+class RecipeViewSet(viewsets.ModelViewSet):
+    """Endpoint for Recipes."""
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    pagination_class = LimitOffsetPagination
+    permission_classes = [IsAuthorOrReadOnly,]
+    filter_backends = [DjangoFilterBackend, ]
+    filterset_class = RecipeFilter
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update', 'update'):
+            return RecipeWriteSerializer
+        return RecipeSerializer
+
+    @action(detail=True, methods=['get'], url_path='get-link')
+    def get_link(self, request, pk=None):
+        if self.get_object():
+            return Response(
+                {'short-link': request.build_absolute_url(f'/s/{pk}')},
+                status=status.HTTP_200_OK)
