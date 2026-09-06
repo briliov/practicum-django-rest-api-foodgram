@@ -5,14 +5,14 @@ from rest_framework import routers
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView
 
 from .views import (UsersViewSet, IngredientsViewSet, TagsViewSet,
-                    SubscriptionViewSet, RecipeViewSet)
+                    RecipeViewSet)
 
 
 app_name = 'api'
 
 router = routers.DefaultRouter()
 router.register(r'users', UsersViewSet, basename='users')
-router.register(r'users', SubscriptionViewSet, basename='users-subscription')
+# router.register(r'users', SubscriptionViewSet, basename='users-subscription')
 router.register(r'ingredients', IngredientsViewSet, basename='ingredients')
 router.register(r'tags', TagsViewSet, basename='tags')
 router.register(r'recipes', RecipeViewSet, basename='recipes')

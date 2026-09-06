@@ -186,8 +186,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients', None)
         tags_data = validated_data.pop('tags', None)
-        author = validated_data.pop('author',
-                                    self.context.get('request').user)
+        author = validated_data.pop(
+            'author', self.context.get('request').user)  # type: ignore
         recipe = Recipe.objects.create(author=author, **validated_data)
         recipe.tags.set(tags_data)
         self._save_ingredients(recipe, ingredients_data)
@@ -205,7 +205,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
         return instance
 
-    def to_representation(self, instance):
+    def to_representation(self, instance):  # type: ignore
         """Паттерн Read/Write split: отдаем клиенту развернутый GET-формат."""
         return RecipeSerializer(instance, context=self.context).data
 
@@ -250,4 +250,3 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         return request.user.shopping_cart.filter(recipe=obj).exists()
-

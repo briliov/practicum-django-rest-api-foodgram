@@ -1,7 +1,5 @@
 """Views for API users application."""
 
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins, permissions
@@ -12,9 +10,8 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .serializers import (UsersSerializer, IngredientsSerializer,
                           TagSerializer, RecipeSerializer, AvatarSerializer,
-                          UsersCreateSerializer, ShoppingCartSerializer,
-                          RecipeWriteSerializer)
-from .models import Ingredient, Tag, Recipe, Following, ShoppingCart
+                          UsersCreateSerializer, RecipeWriteSerializer)
+from .models import Ingredient, Tag, Recipe
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
 
@@ -36,7 +33,7 @@ class UsersViewSet(mixins.RetrieveModelMixin,
     serializer_class = UsersSerializer
     pagination_class = LimitOffsetPagination
 
-    def get_serializer_class(self):
+    def get_serializer_class(self):  # type: ignore
         if self.action == 'create':
             return UsersCreateSerializer
         return super().get_serializer_class()
@@ -75,7 +72,6 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         request.user.set_password(request.data['new_password'])
         request.user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 @extend_schema_view(
@@ -121,7 +117,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
 
-    def get_serializer_class(self):
+    def get_serializer_class(self):  # type: ignore
         if self.action in ('create', 'partial_update', 'update'):
             return RecipeWriteSerializer
         return RecipeSerializer
@@ -130,5 +126,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_link(self, request, pk=None):
         if self.get_object():
             return Response(
-                {'short-link': request.build_absolute_url(f'/s/{pk}')},
+                {'short-link': request.build_absolute_uri(f'/s/{pk}')},
                 status=status.HTTP_200_OK)
