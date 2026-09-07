@@ -2,6 +2,8 @@
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
+from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins, permissions
 from rest_framework.decorators import action
@@ -17,6 +19,7 @@ from .models import (Ingredient, Tag, Recipe, Favorite, ShoppingCart,
                      RecipeIngredient)
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
+from .utils import generate_shopping_cart_pdf
 
 User = get_user_model()
 
@@ -133,7 +136,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post', 'delete'], url_path='favorite',
-            serializer_class=FavoriteSerializer)
+            serializer_class=ShortRecipeSerializer)
     def favorite(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
         user = request.user
@@ -171,3 +174,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response({'errors': 'Рецепта не было в корзине.'},
                                 status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='download_shopping_cart')
+    def download_shoping_cart(self, request):
+        ingredients = (
+            RecipeIngredient.objects
+            .filter(recipe__shopping_carts__user=request.user)
+            .values('ingredients__name', 'ingredients__measurement_unit')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('ingredients__name')
+        )
+
+        pdf_buffer = generate_shopping_cart_pdf(ingredients)
+        return FileResponse(
+            pdf_buffer,
+            as_attachment=True,
+            filename='shopping_cart.pdf'
+        )
