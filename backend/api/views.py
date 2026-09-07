@@ -12,8 +12,9 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from .serializers import (UsersSerializer, IngredientsSerializer,
                           TagSerializer, RecipeSerializer, AvatarSerializer,
                           UsersCreateSerializer, RecipeWriteSerializer,
-                          FavoriteSerializer)
-from .models import Ingredient, Tag, Recipe, Favorite
+                          ShortRecipeSerializer)
+from .models import (Ingredient, Tag, Recipe, Favorite, ShoppingCart,
+                     RecipeIngredient)
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
 
@@ -148,5 +149,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if not Favorite.objects.filter(user=user, recipe=recipe
                                            ).delete()[0]:
                 return Response({'errors': 'Рецепта не было в избранном.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get', 'post', 'delete'],
+            url_path='shopping_cart', serializer_class=ShortRecipeSerializer)
+    def shopping_cart(self, request, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        user = request.user
+        if request.method == 'POST':
+            if not ShoppingCart.objects.get_or_create(user=user,
+                                                      recipe=recipe)[1]:
+                return Response({'errors': 'Этот рецепт уже в корзине.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            if not ShoppingCart.objects.filter(user=user, recipe=recipe
+                                               ).delete()[0]:
+                return Response({'errors': 'Рецепта не было в корзине.'},
                                 status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_204_NO_CONTENT)
