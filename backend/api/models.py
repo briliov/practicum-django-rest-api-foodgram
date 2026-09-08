@@ -23,21 +23,19 @@ class Following(models.Model):
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='subscriptions',
-        verbose_name='User',
+        related_name='follower_relations',
     )
 
     following = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='followers',
-        verbose_name='Following',
+        related_name='author_relations',
     )
 
     class Meta:
         """Meta class for model Following"""
-        verbose_name = 'Subscription'
-        verbose_name_plural = 'Subscriptions'
+        verbose_name = 'Following'
+        verbose_name_plural = 'Followings'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'following'],
