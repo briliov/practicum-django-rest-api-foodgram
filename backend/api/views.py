@@ -9,14 +9,15 @@ from rest_framework import viewsets, status, mixins, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .serializers import (UsersSerializer, IngredientsSerializer,
                           TagSerializer, RecipeSerializer, AvatarSerializer,
                           UsersCreateSerializer, RecipeWriteSerializer,
-                          ShortRecipeSerializer)
+                          ShortRecipeSerializer, FollowingSerializer)
 from .models import (Ingredient, Tag, Recipe, Favorite, ShoppingCart,
-                     RecipeIngredient)
+                     RecipeIngredient, Following)
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
 from .utils import generate_shopping_cart_pdf
@@ -24,15 +25,10 @@ from .utils import generate_shopping_cart_pdf
 User = get_user_model()
 
 
-@extend_schema_view(
-    list=extend_schema(summary='Список пользователей'),
-    create=extend_schema(summary='Регистрация пользователя'),
-    retrieve=extend_schema(summary='Профиль пользователя'),
-)
-@extend_schema(tags=['Пользователи'])
 class UsersViewSet(mixins.RetrieveModelMixin,
                    mixins.ListModelMixin,
                    mixins.CreateModelMixin,
+                   mixins.UpdateModelMixin,
                    viewsets.GenericViewSet):
     """Endpoint for Users."""
     queryset = User.objects.all()
@@ -44,7 +40,6 @@ class UsersViewSet(mixins.RetrieveModelMixin,
             return UsersCreateSerializer
         return super().get_serializer_class()
 
-    @extend_schema(summary='Текущий пользователь')
     @action(detail=False, methods=['get'], url_path='me',
             permission_classes=[permissions.IsAuthenticated],
             pagination_class=None)
@@ -52,7 +47,6 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         return Response(self.get_serializer(request.user).data,
                         status=status.HTTP_200_OK)
 
-    @extend_schema(summary='Добавление аватара')
     @action(detail=False, methods=['put', 'delete'], url_path='me/avatar',
             permission_classes=[permissions.IsAuthenticated],
             serializer_class=AvatarSerializer)
@@ -78,6 +72,29 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         request.user.set_password(request.data['new_password'])
         request.user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=('post', 'delete'), url_path='subscribe',
+            permission_classes=(permissions.IsAuthenticated,),
+            serializer_class=FollowingSerializer)
+    def subscribe(self, request, pk=None, *args, **kwargs):
+        get_object_or_404(User, id=pk)
+        if request.method == 'POST':
+            return self.create(request, *args, **kwargs)
+        if request.method == 'DELETE':
+            deleted, _ = Following.objects.filter(user=request.user,
+                                                  following_id=pk).delete()
+            if not deleted:
+                raise ValidationError(
+                    'Вы не были подписаны на этого пользователя.')
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=('get',), url_path='subscriptions',
+            permission_classes=(permissions.IsAuthenticated,),
+            serializer_class=FollowingSerializer,)
+    def subscriptions(self, request, *args, **kwargs):
+        self.queryset = User.objects.filter(
+            author_relations__user=request.user)
+        return self.list(request, *args, **kwargs)
 
 
 @extend_schema_view(
