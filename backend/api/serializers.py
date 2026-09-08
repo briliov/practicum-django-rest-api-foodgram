@@ -261,3 +261,73 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         return request.user.shopping_cart.filter(recipe=obj).exists()
+
+
+class FollowingSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+            'avatar'
+        )
+
+        read_only_fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'recipes',
+            'recipes_count',
+            'avatar')
+
+    def validate(self, attrs):
+        request = self.context['request']
+        author_id = self.context['view'].kwargs.get('pk')
+        if request.user.id == int(author_id):
+            raise serializers.ValidationError(
+                'Нельзя подписаться на самого себя.')
+        if Following.objects.filter(user=request.user,
+                                    following_id=author_id).exists():
+            raise serializers.ValidationError('Вы уже подписаны.')
+        return attrs
+
+    def create(self, validated_data):
+        request = self.context['request']
+        author_id = self.context['view'].kwargs.get('pk')
+        Following.objects.create(user=request.user, following_id=author_id)
+        return User.objects.get(id=author_id)
+
+    def get_is_subscribed(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return Following.objects.filter(user=request.user, following=obj
+                                        ).exists()
+
+    def get_recipes_count(self, obj) -> int:
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return 0
+        return Recipe.objects.filter(author=obj).count()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        queryset = obj.recipes.all()
+        if request:
+            limit = request.query_params.get('recipes_limit')
+            if limit and limit.isdigit():
+                queryset = queryset[:int(limit)]
+        serializer = ShortRecipeSerializer(queryset, many=True,
+                                           context={'request': request})
+        return serializer.data
