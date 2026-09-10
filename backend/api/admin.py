@@ -40,5 +40,11 @@ class RecipeAdmin(admin.ModelAdmin):
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measurement_unit')
+    list_display = ('get_capitalized_name', 'measurement_unit')
     search_fields = ('name',)
+
+    @admin.display(description='Имя')
+    def get_capitalized_name(self, obj):
+        if obj.name:
+            return obj.name[0].upper() + obj.name[1:]
+        return ""

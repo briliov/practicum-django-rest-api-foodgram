@@ -54,7 +54,7 @@ class Following(models.Model):
 
     def __str__(self):
         """String explanation for model"""
-        return f'{self.user} подписан на {self.following}'
+        return f'«{self.user}» подписан на «{self.following}»'
 
 
 class NamedModel(models.Model):
@@ -180,7 +180,7 @@ class Favorite(models.Model):
 
     def __str__(self):
         """String explanation for model"""
-        return f'{self.recipe} в избранных {self.user}'
+        return f'«{self.recipe}» в избранных «{self.user}»'
 
 
 class ShoppingCart(models.Model):
@@ -201,4 +201,4 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         """String explanation for model"""
-        return f'{self.recipe} в корзине {self.user}'
+        return f'«{self.recipe}» в корзине «{self.user}»'
