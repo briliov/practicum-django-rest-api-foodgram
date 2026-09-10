@@ -1,21 +1,24 @@
 """Utils for API Foodgram."""
 
-from django.core.files.base import ContentFile
-from rest_framework import serializers
+import base64
 import io
+import uuid
+
+from django.core.files.base import ContentFile
+from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-
-import base64
-import uuid
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+from rest_framework import serializers
 
 
 class Base64ImageField(serializers.ImageField):
-    """Custom field for decode images from Base64 format"""
+    """Custom field to decode images received in Base64 string format."""
+
     def to_internal_value(self, data):
+        """Decode a Base64 encoded string into a Django ContentFile object."""
         if isinstance(data, str) and data.startswith('data:image'):
             cleaned_data = data.replace(' ', '')
             format, imgstr = cleaned_data.split(';base64,')
@@ -26,6 +29,16 @@ class Base64ImageField(serializers.ImageField):
 
 
 def generate_shopping_cart_pdf(ingredients: list) -> io.BytesIO:
+    """Generate a PDF document containing a list of shopping cart ingredients.
+
+    Args:
+        ingredients (list): A list of dictionaries, where each dict contains
+                            the ingredient name, measurement unit, and
+                            the summarized total amount.
+
+    Returns:
+        io.BytesIO: An in-memory byte buffer containing the generated PDF data.
+    """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -33,9 +46,10 @@ def generate_shopping_cart_pdf(ingredients: list) -> io.BytesIO:
         rightMargin=54,
         leftMargin=54,
         topMargin=54,
-        bottomMargin=54
+        bottomMargin=54,
     )
 
+    # Register a TrueType font capable of rendering Cyrillic characters
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     pdfmetrics.registerFont(TTFont('DejaVuSans', font_path))
 
@@ -46,7 +60,7 @@ def generate_shopping_cart_pdf(ingredients: list) -> io.BytesIO:
         fontName='DejaVuSans',
         fontSize=24,
         leading=28,
-        textColor='#333333',
+        textColor=HexColor('#333333'),
         spaceAfter=25
     )
     item_style = ParagraphStyle(
@@ -55,11 +69,12 @@ def generate_shopping_cart_pdf(ingredients: list) -> io.BytesIO:
         fontName='DejaVuSans',
         fontSize=13,
         leading=20,
-        textColor='#444444',
+        textColor=HexColor('#444444'),
         leftIndent=15,
         spaceAfter=8
     )
 
+    # Build the flowable elements list for the document
     story = [Paragraph("Список покупок", title_style), Spacer(1, 10)]
 
     for ingredient in ingredients:
