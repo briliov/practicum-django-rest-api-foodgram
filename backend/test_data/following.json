@@ -1,0 +1,14 @@
+[
+  {
+    "user_id": 4,
+    "following_id": 3
+  },
+  {
+    "user_id": 1,
+    "following_id": 3
+  },
+  {
+    "user_id": 2,
+    "following_id": 4
+  }
+]
