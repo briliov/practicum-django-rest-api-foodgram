@@ -10,4 +10,4 @@ RUN pip install -r requirements.txt --no-cache-dir && pip install gunicorn==25.3
 
 COPY . .
 
-CMD python manage.py makemigrations && python manage.py migrate && python manage.py load_test_data && python manage.py collectstatic --no-input && gunicorn --bind 0.0.0.0:8000 core.wsgi --reload
+CMD python manage.py makemigrations && python manage.py migrate && python manage.py fixtures load && python manage.py collectstatic --no-input && gunicorn --bind 0.0.0.0:8000 core.wsgi --reload

@@ -17,8 +17,8 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
-        verbose_name = 'Кастамный пользователь'
-        verbose_name_plural = 'Кастамные пользователи'
+        verbose_name = 'Кастомный пользователь'
+        verbose_name_plural = 'Кастомные пользователи'
 
     def __str__(self):
         """String explanation for model"""

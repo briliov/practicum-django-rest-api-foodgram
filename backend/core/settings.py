@@ -168,3 +168,9 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+GLOBAL_FIXTURES_DIR = BASE_DIR / 'fixtures'
+
+FIXTURE_DIRS = [
+    GLOBAL_FIXTURES_DIR,
+]
