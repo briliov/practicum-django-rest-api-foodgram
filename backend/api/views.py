@@ -20,14 +20,13 @@ from rest_framework.response import Response
 from .filters import IngredientFilter, RecipeFilter
 from .models import (Favorite, Following, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Tag)
+from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AvatarSerializer, FollowingSerializer,
                           IngredientsSerializer, RecipeSerializer,
-                          ShortRecipeSerializer,
-                          TagSerializer, UsersCreateSerializer,
-                          UsersSerializer)
+                          ShortRecipeSerializer, TagSerializer,
+                          UsersCreateSerializer, UsersSerializer)
 from .utils import generate_shopping_cart_pdf
-from .pagination import LimitPageNumberPagination
 
 User = get_user_model()
 

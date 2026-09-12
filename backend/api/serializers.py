@@ -1,15 +1,12 @@
 """Serializers module providing data transformation pipelines for the API."""
 
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
 from .models import Following, Ingredient, Recipe, RecipeIngredient, Tag
 from .utils import Base64ImageField
-from .validators import validate_recipe_ingredients
 
 User = get_user_model()
 
@@ -185,13 +182,15 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Recipe.objects.filter(favorites_by__user=user, id=obj.id).exists()
+        return Recipe.objects.filter(favorites_by__user=user,
+                                     id=obj.id).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Recipe.objects.filter(shopping_carts__user=user, id=obj.id).exists()
+        return Recipe.objects.filter(shopping_carts__user=user,
+                                     id=obj.id).exists()
 
     def validate_cooking_time(self, value):
         if value <= 0:
