@@ -1,64 +1,39 @@
 """Filtering module providing custom query filters for API endpoints."""
 
 import django_filters
+from django.contrib.auth import get_user_model
+from django_filters.rest_framework import filters
+from rest_framework.filters import SearchFilter
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .models import Recipe
+
+User = get_user_model()
 
 
-class IngredientFilter(django_filters.FilterSet):
+class IngredientFilter(SearchFilter):
     """Filter set for parsing ingredient queries inside database indices."""
-    name = django_filters.CharFilter(field_name='name',
-                                     lookup_expr='istartswith')
-
-    class Meta:
-        """Meta options mapping properties against the configuration."""
-
-        model = Ingredient
-        fields = ['name']
+    search_param = 'name'
 
 
 class RecipeFilter(django_filters.FilterSet):
     """Filter set configuring query properties for Recipe endpoints."""
 
-    tags = django_filters.ModelMultipleChoiceFilter(
-        field_name='tags__slug',
-        to_field_name='slug',
-        queryset=Tag.objects.all()
-    )
-    is_in_shopping_cart = django_filters.NumberFilter(
+    tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
+    author = filters.ModelChoiceFilter(queryset=User.objects.all())
+    is_favorited = filters.BooleanFilter(method='filter_is_favorited')
+    is_in_shopping_cart = filters.BooleanFilter(
         method='filter_is_in_shopping_cart')
-    is_favorited = django_filters.NumberFilter(
-        method='filter_is_favorited')
-
-    class Meta:
-        """Meta options mapping properties against the configuration."""
-
-        model = Recipe
-        fields = ('author', 'is_in_shopping_cart', 'is_favorited')
-
-    def filter_is_in_shopping_cart(self, queryset, name, value):
-        """Filters recipes based on active instances inside the layout."""
-
-        user = self.request.user
-        if user.is_anonymous:
-            return queryset.none()
-        if str(value) in ('1', '1.0', 'True', 'true'):
-            user_recipes_ids = ShoppingCart.objects.filter(
-                user=self.request.user).values_list('recipe_id', flat=True)
-            return queryset.filter(id__in=user_recipes_ids)
-        return queryset
 
     def filter_is_favorited(self, queryset, name, value):
-        """Filters recipes based on user bookmark lists."""
-
-        if not self.request or not self.request.user:
-            return queryset.none()
-
-        user = self.request.user
-        if user.is_anonymous:
-            return queryset.none()
-        if str(value) in ('1', '1.0', 'True', 'true'):
-            user_recipes_ids = Favorite.objects.filter(
-                user=self.request.user).values_list('recipe_id', flat=True)
-            return queryset.filter(id__in=user_recipes_ids)
+        if value and not self.request.user.is_anonymous:
+            return queryset.filter(favorites_by__user=self.request.user)
         return queryset
+
+    def filter_is_in_shopping_cart(self, queryset, name, value):
+        if value and not self.request.user.is_anonymous:
+            return queryset.filter(shopping_carts__user=self.request.user)
+        return queryset
+
+    class Meta:
+        model = Recipe
+        fields = ('tags', 'author')

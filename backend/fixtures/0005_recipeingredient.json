@@ -1,0 +1,29 @@
+[
+{
+    "model": "api.recipeingredient",
+    "pk": 1,
+    "fields": {
+        "recipe": 1,
+        "ingredients": 1,
+        "amount": 1000
+    }
+},
+{
+    "model": "api.recipeingredient",
+    "pk": 2,
+    "fields": {
+        "recipe": 1,
+        "ingredients": 2,
+        "amount": 10
+    }
+},
+{
+    "model": "api.recipeingredient",
+    "pk": 3,
+    "fields": {
+        "recipe": 2,
+        "ingredients": 1,
+        "amount": 15
+    }
+}
+]

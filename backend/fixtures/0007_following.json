@@ -1,0 +1,10 @@
+[
+{
+    "model": "api.following",
+    "pk": 1,
+    "fields": {
+        "user": 1,
+        "following": 2
+    }
+}
+]

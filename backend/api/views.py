@@ -20,12 +20,12 @@ from rest_framework.response import Response
 from .filters import IngredientFilter, RecipeFilter
 from .models import (Favorite, Following, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Tag)
+from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AvatarSerializer, FollowingSerializer,
                           IngredientsSerializer, RecipeSerializer,
-                          RecipeWriteSerializer, ShortRecipeSerializer,
-                          TagSerializer, UsersCreateSerializer,
-                          UsersSerializer)
+                          ShortRecipeSerializer, TagSerializer,
+                          UsersCreateSerializer, UsersSerializer)
 from .utils import generate_shopping_cart_pdf
 
 User = get_user_model()
@@ -122,10 +122,9 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
+    filter_backends = (IngredientFilter,)
+    search_fields = ('^name',)
     pagination_class = None
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = IngredientFilter
-    ordering_fields = ['name',]
 
 
 @extend_schema_view(
@@ -153,17 +152,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = LimitPageNumberPagination
     permission_classes = [IsAuthorOrReadOnly,]
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-
-    def get_serializer_class(self):  # type: ignore
-        """Switch between read and write serializers depending on the
-        action."""
-        if self.action in ('create', 'partial_update', 'update'):
-            return RecipeWriteSerializer
-        return super().get_serializer_class()
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
