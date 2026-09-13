@@ -60,9 +60,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
       - name: Set up NodeJS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24    
       - name: Install dependencies
         run: |
           cd ./frontend/
@@ -136,7 +136,7 @@ jobs:
   telegram-notification:
     name: Send Telegram notification
     runs-on: ubuntu-latest
-    needs: [testing-backend]
+    needs: [server-deploy]
     if: always()
     steps:
       - name: Send message
