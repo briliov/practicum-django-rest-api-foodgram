@@ -90,7 +90,7 @@ jobs:
       - name: Push to DockerHUB
         uses: docker/build-push-action@v4
         with:
-          context: ../${{ matrix.type }}/
+          context: ./${{ matrix.type }}/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_${{ matrix.type }}:latest
           target: ${{ matrix.type == 'backend' && 'production' || '' }}
