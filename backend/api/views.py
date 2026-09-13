@@ -10,7 +10,7 @@ from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -112,11 +112,6 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         return self.list(request, *args, **kwargs)
 
 
-@extend_schema_view(
-    list=extend_schema(summary='Список ингредиентов'),
-    retrieve=extend_schema(summary='Получение ингредиента')
-)
-@extend_schema(tags=['Ингредиенты'])
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     """ReadOnly ViewSet for browsing individual ingredients or catalogs."""
 
@@ -127,11 +122,6 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
-@extend_schema_view(
-    list=extend_schema(summary='Список тегов'),
-    retrieve=extend_schema(summary='Получение тега',),
-)
-@extend_schema(tags=['Теги'])
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     """ReadOnly ViewSet for browsing configured tags."""
 
@@ -140,13 +130,6 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
-@extend_schema_view(
-    list=extend_schema(summary='Список рецептов'),
-    create=extend_schema(summary='Создание рецепта'),
-    retrieve=extend_schema(summary='Получение рецепта'),
-    partial_update=extend_schema(summary='Обновление рецепта'),
-)
-@extend_schema(tags=['Рецепты'])
 class RecipeViewSet(viewsets.ModelViewSet):
     """ViewSet for managing standard CRUD interactions for Recipe records."""
 

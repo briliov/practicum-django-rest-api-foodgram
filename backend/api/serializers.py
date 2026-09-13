@@ -161,6 +161,13 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for managing recipe creation, retrieval, and updates.
+
+    Handles validation of nested tags and ingredients extracted from raw
+    initial data, and dynamically calculates favorited and shopping cart
+    statuses for the requesting user.
+    """
     image = Base64ImageField()
     tags = TagSerializer(read_only=True, many=True)
     author = UsersSerializer(read_only=True)
@@ -179,27 +186,44 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'cooking_time')
 
     def get_is_favorited(self, obj):
-        user = self.context.get('request').user
+        """
+        Determine if the current authenticated user has favorited this recipe.
+        """
+        user = self.context['request'].user
         if user.is_anonymous:
             return False
         return Recipe.objects.filter(favorites_by__user=user,
                                      id=obj.id).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user
+        """
+        Determine if the current authenticated user has added this recipe to
+        their shopping cart.
+        """
+        user = self.context['request'].user
         if user.is_anonymous:
             return False
         return Recipe.objects.filter(shopping_carts__user=user,
                                      id=obj.id).exists()
 
     def validate_cooking_time(self, value):
+        """
+        Validate that the provided cooking time is strictly greater than
+        0 minutes.
+        """
         if value <= 0:
             raise serializers.ValidationError(
                 'Время приготовления должно быть больше 0 минут!'
             )
         return value
 
-    def validate(self, data):
+    def validate(self, attrs):
+        """
+        Perform complex validation on incoming recipe data.
+
+        Ensures that ingredients and tags are provided, exist in the database,
+        are mutually unique within the request, and have positive amounts.
+        """
         ingredients = self.initial_data.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError({
@@ -223,8 +247,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                     'ingredients': ('Убедитесь, что значение количества '
                                     'ингредиента больше 0')
                 })
-        data['ingredients'] = ingredients
-
+        attrs['ingredients'] = ingredients
         tags = self.initial_data.get('tags')
         if not tags:
             raise serializers.ValidationError({
@@ -240,10 +263,13 @@ class RecipeSerializer(serializers.ModelSerializer):
                     'tags': 'Теги должны быть уникальными'
                 })
             tags_list.append(tag_id)
-
-        return data
+        return attrs
 
     def create_ingredients(self, ingredients, recipe):
+        """
+        Helper method to bulk create through-model instances for the
+        recipe-ingredient relationship.
+        """
         for ingredient in ingredients:
             RecipeIngredient.objects.create(
                 recipe=recipe,
@@ -252,7 +278,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
 
     def create(self, validated_data):
-        # image = validated_data.pop('image')
+        """
+        Create a new recipe instance, associate it with the current user,
+        and set up M2M relations.
+        """
         ingredients_data = validated_data.pop('ingredients')
         user = self.context['request'].user
         recipe = Recipe.objects.create(author=user, **validated_data)
@@ -262,6 +291,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        """
+        Update an existing recipe instance and completely refresh its
+        tags and ingredient relations.
+        """
         instance.image = validated_data.get('image', instance.image)
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
