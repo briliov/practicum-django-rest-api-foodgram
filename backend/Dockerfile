@@ -1,13 +1,18 @@
-FROM python:3.12
-
+FROM python:3.12 AS base
 WORKDIR /app
-
 RUN python -m pip install --upgrade pip
+COPY requirements/requirements.txt . 
+RUN pip install -r requirements.txt --no-cache-dir
 
-COPY requirements/requirements.txt .
-
-RUN pip install -r requirements.txt --no-cache-dir && pip install gunicorn==25.3.0
-
+FROM base AS development
 COPY . .
+CMD python manage.py makemigrations --no-input && python manage.py migrate && \ 
+    python manage.py fixtures load && \
+    python manage.py collectstatic --no-input && \
+    python3 manage.py runserver 0.0.0.0:8000
 
-CMD python manage.py makemigrations && python manage.py migrate && python manage.py fixtures load && python manage.py collectstatic --no-input && gunicorn --bind 0.0.0.0:8000 core.wsgi --reload
+FROM base AS production
+COPY . .
+RUN pip install gunicorn==25.3.0 --no-cache-dir
+RUN python manage.py collectstatic --no-input &&
+CMD gunicorn --bind 0.0.0.0:8000 core.wsgi
