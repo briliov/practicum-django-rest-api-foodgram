@@ -65,11 +65,11 @@ jobs:
           node-version: 18
       - name: Install dependencies
         run: |
-          cd ../frontend/
+          cd ./frontend/
           npm ci
       - name: Test frontend
         run: |
-          cd ../frontend/
+          cd ./frontend/
           npm run test
 
   build-and-push-to-docker-hub:
