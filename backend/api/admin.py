@@ -55,5 +55,5 @@ class IngredientAdmin(admin.ModelAdmin):
         ingredient."""
 
         if obj.name:
-            return obj.name.upper() + obj.name[1:1]
+            return obj.name.capitalize() + obj.name[1:1]
         return ""
