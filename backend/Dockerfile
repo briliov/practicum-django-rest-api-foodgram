@@ -14,5 +14,4 @@ CMD python manage.py makemigrations --no-input && python manage.py migrate && \
 FROM base AS production
 COPY . .
 RUN pip install gunicorn==25.3.0 --no-cache-dir
-RUN python manage.py collectstatic --no-input &&
 CMD gunicorn --bind 0.0.0.0:8000 core.wsgi
