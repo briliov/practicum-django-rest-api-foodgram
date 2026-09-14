@@ -1,4 +1,4 @@
-name: Development workflow
+name: Main workflow
 
 on:
   push:
@@ -52,25 +52,6 @@ jobs:
         run: |
           cd backend/
           python manage.py test
-
-  # testing-frontend:
-  #   name: Testing frontend
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Check out code
-  #       uses: actions/checkout@v3
-  #     - name: Set up NodeJS
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 24    
-  #     - name: Install dependencies
-  #       run: |
-  #         cd ./frontend/
-  #         npm ci
-  #     - name: Test frontend
-  #       run: |
-  #         cd ./frontend/
-  #         npm run test
 
   build-and-push-to-docker-hub:
     strategy:
