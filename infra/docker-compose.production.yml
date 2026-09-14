@@ -1,7 +1,11 @@
+version: '3.8'
+
 volumes:
   db:
-  static:
-  
+  backend_static:
+  frontend_static:
+  media:
+
 services:
   database:
     container_name: foodgram-database
@@ -18,16 +22,8 @@ services:
     container_name: foodgram-backend
     image: nexordon/foodgram_backend
     volumes:
-      - type: volume
-        source: static
-        target: /app/static
-        volume:
-          subpath: backend/static
-      - type: volume
-        source: static
-        target: /app/media
-        volume:
-          subpath: backend/media
+      - backend_static:/app/static
+      - media:/app/media
     env_file: .env
     depends_on:
       database:
@@ -37,11 +33,7 @@ services:
     container_name: foodgram-frontend
     image: nexordon/foodgram_frontend
     volumes:
-      - type: volume
-        source: static
-        target: /app/result_build
-        volume:
-          subpath: frontend/build
+      - frontend_static:/app/result_build
  
   nginx:
     container_name: foodgram-nginx
@@ -50,21 +42,9 @@ services:
       - 80:80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - type: volume
-        source: static
-        target: /var/www/django/static
-        volume:
-          subpath: backend/static
-      - type: volume
-        source: static
-        target: /var/www/django/media
-        volume:
-          subpath: backend/media
-      - type: volume
-        source: static
-        target: /usr/share/nginx/html
-        volume:
-          subpath: frontend/build
+      - backend_static:/var/www/django/static
+      - media:/var/www/django/media
+      - frontend_static:/usr/share/nginx/html
     depends_on:
       - database
       - backend
