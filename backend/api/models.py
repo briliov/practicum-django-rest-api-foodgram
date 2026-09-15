@@ -126,6 +126,8 @@ class Recipe(NamedModel):
                                   verbose_name='Теги рецепта')
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='время приготовления')
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      verbose_name='Дата добаления рецепта')
 
     class Meta(NamedModel.Meta):
         """Meta class for model Tag"""

@@ -139,6 +139,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnly,]
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
+    ordering_fields = ['created_at',]
+    ordering = ['-created_at']
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
