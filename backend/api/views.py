@@ -136,10 +136,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = LimitPageNumberPagination
-    permission_classes = [IsAuthorOrReadOnly,]
+    permission_classes = [IsAuthorOrReadOnly, ]
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-    ordering_fields = ['created_at',]
+    ordering_fields = ['created_at', ]
     ordering = ['-created_at']
 
     @action(detail=True, methods=['get'], url_path='get-link')

@@ -26,8 +26,8 @@ class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'get_author_name')
     search_fields = ('name', 'author__username')
-    list_filter = ['tags',]
-    readonly_fields = ['get_favorite_add_count',]
+    list_filter = ['tags', ]
+    readonly_fields = ['get_favorite_add_count', ]
 
     @admin.display(description='Автор')
     def get_author_name(self, obj):
