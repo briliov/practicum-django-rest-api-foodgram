@@ -178,3 +178,5 @@ FIXTURE_DIRS = [
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS',
                               default='http://localhost,http://127.0.0.1',
                               cast=Csv())
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
