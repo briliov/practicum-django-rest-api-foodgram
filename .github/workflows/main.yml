@@ -114,8 +114,8 @@ jobs:
             sudo docker compose -f docker-compose.production.yml down
             sudo docker compose -f docker-compose.production.yml up -d
             sleep 10
-            sudo docker compose -f docker-compose.production.yml exec foodgram-backend python manage.py migrate
-            sudo docker compose -f docker-compose.production.yml exec foodgram-backend python manage.py collectstatic
+            sudo docker container exec foodgram-backend python manage.py migrate
+            sudo docker container exec foodgram-backend python manage.py collectstatic
 
   telegram-notification:
     name: Send Telegram notification
