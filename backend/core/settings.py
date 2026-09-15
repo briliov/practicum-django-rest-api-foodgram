@@ -174,3 +174,7 @@ GLOBAL_FIXTURES_DIR = BASE_DIR / 'fixtures'
 FIXTURE_DIRS = [
     GLOBAL_FIXTURES_DIR,
 ]
+
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS',
+                              default='http://localhost,http://127.0.0.1',
+                              cast=Csv())
