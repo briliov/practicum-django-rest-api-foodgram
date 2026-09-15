@@ -41,7 +41,7 @@ services:
     ports:
       - 8000:80
     volumes:
-      - ./default.conf:/etc/nginx/sites-enabled/default
+      - ./nginx.conf:/etc/nginx/templates/default.conf.template
       - backend_static:/var/www/django/static
       - media:/var/www/django/media
       - frontend_static:/usr/share/nginx/html
