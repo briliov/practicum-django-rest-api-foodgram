@@ -1,6 +1,5 @@
 volumes:
   db:
-  static:
   
 services:
   database:
@@ -35,15 +34,14 @@ services:
 
   nginx:
     container_name: foodgram-nginx
-    image: nginx:1.25.4-alpine
+    build:
+      context: ../
+      dockerfile: infra/Dockerfile
     ports:
       - 80:80
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../docs/:/usr/share/nginx/html/api/docs/
-      - ../frontend/build:/usr/share/nginx/html/build
-      - ../backend/static:/var/www/django/static/
-      - ../backend/media:/var/www/django/media/
+      - ../backend/backend:/var/www/backend
+      - ../frontend/build:/var/www/frontend
     depends_on:
       - database
       - backend

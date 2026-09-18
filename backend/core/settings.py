@@ -1,9 +1,10 @@
 """Settings for backend foodgram project."""
 
-import os
 from pathlib import Path
 
 from decouple import Csv, config
+
+from ..utils.constants import PAGE_SIZE
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -117,10 +118,10 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'static'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -136,7 +137,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE_QUERY_PARAM': 'limit',
-    'PAGE_SIZE': 6,
+    'PAGE_SIZE': PAGE_SIZE,
 
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 
