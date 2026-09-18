@@ -116,12 +116,13 @@ USE_I18N = True
 
 USE_TZ = True
 
+STATIC_SOURCE = 'backend/static/'
+STATIC_URL = STATIC_SOURCE
+STATIC_ROOT = BASE_DIR / STATIC_SOURCE
 
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_SOURCE = 'backend/media/'
+MEDIA_URL = MEDIA_SOURCE
+MEDIA_ROOT = BASE_DIR / MEDIA_SOURCE
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
