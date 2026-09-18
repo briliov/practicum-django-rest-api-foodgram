@@ -7,16 +7,14 @@ from .views import IngredientsViewSet, RecipeViewSet, TagsViewSet, UsersViewSet
 
 app_name = 'api'
 
-# Initialize the standard REST framework router
-router = routers.DefaultRouter()
 
-# Register API viewsets with the router
+router = routers.DefaultRouter()
 router.register(r'users', UsersViewSet, basename='users')
 router.register(r'ingredients', IngredientsViewSet, basename='ingredients')
 router.register(r'tags', TagsViewSet, basename='tags')
 router.register(r'recipes', RecipeViewSet, basename='recipes')
 
-# Define URL patterns for the API application
+
 urlpatterns = [
     # Djoser authentication and user management endpoints
     path('auth/', include('djoser.urls')),
