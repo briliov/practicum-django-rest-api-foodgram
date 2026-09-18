@@ -4,9 +4,9 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from drf_extra_fields.fields import Base64ImageField
 
 from .models import Following, Ingredient, Recipe, RecipeIngredient, Tag
-from .utils import Base64ImageField
 
 User = get_user_model()
 
