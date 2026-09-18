@@ -1,6 +1,7 @@
 """Utils for API Foodgram."""
 
 import io
+from backend.core.settings import BASE_DIR
 
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
@@ -8,6 +9,9 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+
+FONT_PATH = BASE_DIR / 'api' / 'data' / 'fonts' / 'DejaVuSans.ttf'
+pdfmetrics.registerFont(TTFont('DejaVuSans', FONT_PATH))
 
 
 def generate_shopping_cart_pdf(ingredients: list) -> io.BytesIO:
@@ -30,10 +34,6 @@ def generate_shopping_cart_pdf(ingredients: list) -> io.BytesIO:
         topMargin=54,
         bottomMargin=54,
     )
-
-    # Register a TrueType font capable of rendering Cyrillic characters
-    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    pdfmetrics.registerFont(TTFont('DejaVuSans', font_path))
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle(
