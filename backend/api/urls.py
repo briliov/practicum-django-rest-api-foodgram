@@ -16,10 +16,6 @@ router.register(r'recipes', RecipeViewSet, basename='recipes')
 
 
 urlpatterns = [
-    # Djoser authentication and user management endpoints
     path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.authtoken')),
-
-    # Main API endpoints registered via the router
     path('', include(router.urls)),
 ]
