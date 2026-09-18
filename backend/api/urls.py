@@ -1,8 +1,6 @@
 """URL config for Foodgram backend API application."""
 
 from django.urls import include, path
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView
-# Click to add a breakpoint
 from rest_framework import routers
 
 from .views import IngredientsViewSet, RecipeViewSet, TagsViewSet, UsersViewSet
@@ -26,12 +24,4 @@ urlpatterns = [
 
     # Main API endpoints registered via the router
     path('', include(router.urls)),
-
-    # OpenAPI schema generation and Redoc documentation endpoints
-    path('schema/', SpectacularAPIView.as_view(), name='schema'),
-    path(
-        'redoc/',
-        SpectacularRedocView.as_view(url_name='api:schema'),
-        name='schema-redoc'
-    ),
 ]
