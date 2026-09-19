@@ -80,14 +80,16 @@ class RecipeAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     """Admin panel interface configurations for managing Ingredient models."""
 
-    list_display = ('get_capitalized_name', 'measurement_unit')
+    list_display = ('name', 'measurement_unit', 'get_recipe_add_count')
     search_fields = ('name',)
+    list_filter = ('measurement_unit',)
 
-    @admin.display(description='Имя')
-    def get_capitalized_name(self, obj):
-        """Formats and retrieves the capitalized name string of the
-        ingredient."""
+    def get_queryset(self, request):
+        """Get Ingredient queryset with annotated recipe count."""
+        queryset = super().get_queryset(request)
+        return queryset.annotate(in_recipe_count=Count('recipes'))
 
-        if obj.name:
-            return obj.name.capitalize()
-        return ""
+    @admin.display(description='Число добавлений в рецепты')
+    def get_recipe_add_count(self, obj):
+        """Calculates the aggregate count of Recipe with Ingredient."""
+        return obj.in_recipe_count
