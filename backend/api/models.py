@@ -125,7 +125,7 @@ class Recipe(NamedModel):
                                   related_name='recipes',
                                   verbose_name='Теги рецепта')
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='время приготовления')
+        verbose_name='Время приготовления (мин.)')
     created_at = models.DateTimeField(auto_now_add=True,
                                       verbose_name='Дата добаления рецепта')
 
