@@ -1,7 +1,7 @@
 """Utils for API Foodgram."""
 
 import io
-from backend.core.settings import BASE_DIR
+from core.settings import BASE_DIR
 
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
