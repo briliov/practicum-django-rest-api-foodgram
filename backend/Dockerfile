@@ -7,7 +7,7 @@ RUN pip install -r requirements.txt --no-cache-dir
 FROM base AS development
 COPY . .
 CMD python manage.py makemigrations --no-input && python manage.py migrate && \ 
-    python manage.py fixtures load && \
+    python manage.py load_data && \
     python manage.py collectstatic --no-input && \
     python3 manage.py runserver 0.0.0.0:8000
 
