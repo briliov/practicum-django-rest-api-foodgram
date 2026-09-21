@@ -2,17 +2,23 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Q, F
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+from utils.constants import (BASE_NAME_MAX_LENGTH,
+                             AMOUNT_MAX_VALUE, AMOUNT_MIN_VALUE,
+                             TAG_NAME_MAX_LENGTH, INGREDIENT_NAME_MAX_LENGTH,
+                             RECIPE_NAME_MAX_LENGTH, COOKING_MAX_VALUE,
+                             COOKING_MIN_VALUE, SLUG_MAX_LENGTH_VALUE,
+                             MEASUREMENT_UNIT_MAX_LENGTH_VALUE)
 
 
 class User(AbstractUser):
     """Custom user model."""
     email = models.EmailField(unique=True,
                               verbose_name='Пользовательская почта')
-    avatar = models.ImageField(
-        upload_to='users/',
-        blank=True,
-        verbose_name='Пользовательская аватарка'
-    )
+    avatar = models.ImageField(upload_to='users/',
+                               blank=True,
+                               verbose_name='Пользовательская аватарка')
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
@@ -28,24 +34,19 @@ class User(AbstractUser):
 
 class Following(models.Model):
     """Users following model."""
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='follower_relations',
-        verbose_name='Подписывающийся'
-    )
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             verbose_name='Подписывающийся')
 
-    following = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='author_relations',
-        verbose_name='На кого подписываются'
-    )
+    following = models.ForeignKey(User,
+                                  on_delete=models.CASCADE,
+                                  verbose_name='На кого подписываются')
 
     class Meta:
         """Meta class for model Following"""
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
+        default_related_name = 'followings'
         constraints = (
             models.UniqueConstraint(
                 fields=['user', 'following'],
@@ -70,8 +71,6 @@ class NamedModel(models.Model):
 
     class Meta:
         abstract = True
-        verbose_name = 'Именнованая модель'
-        verbose_name_plural = 'Именнованные модели'
         ordering = ('name',)
 
     def __str__(self):
@@ -91,22 +90,20 @@ class Ingredient(NamedModel):
         """Meta class for model Ingredient"""
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['name', 'measurement_unit'],
-                name='unique_ingredient_name_measurement_unit'
-            )
-        ]
+        constraints = [models.UniqueConstraint(
+            fields=['name', 'measurement_unit'],
+            name='unique_ingredient_name_measurement_unit'
+        )]
 
     def __str__(self):
         """String explanation for model"""
-        return f'{self.name}'
+        return f'{self.name} ({self.measurement_unit})'
 
 
 class Tag(NamedModel):
     """Model Tag"""
     name = models.CharField(max_length=TAG_NAME_MAX_LENGTH,
-                            verbose_name='Имя тэга')
+                            verbose_name='Имя т')
     slug = models.SlugField(max_length=SLUG_MAX_LENGTH_VALUE,
                             unique=True,
                             verbose_name='Имя уникального индефикатора')
@@ -115,10 +112,6 @@ class Tag(NamedModel):
         """Meta class for model Tag"""
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
-
-    def __str__(self):
-        """String explanation for model"""
-        return f'{self.name}'
 
 
 class Recipe(NamedModel):
@@ -132,12 +125,11 @@ class Recipe(NamedModel):
                               verbose_name='Картинка рецепта')
     text = models.TextField(verbose_name='Текст рецепта')
     ingredients = models.ManyToManyField(Ingredient,
-                                         related_name='recipes',
+                                         through='RecipeIngredient',
                                          verbose_name='Ингедиенты рецепта')
-    tags = models.ManyToManyField(Tag,
-                                  related_name='recipes',
-                                  verbose_name='Теги рецепта')
+    tags = models.ManyToManyField(Tag, verbose_name='Теги рецепта')
     cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления (мин.)',
         validators=(MinValueValidator(COOKING_MIN_VALUE,
                                       message=('Время приготовления не может '
                                                'быть меньще одной минуты')),
@@ -149,21 +141,21 @@ class Recipe(NamedModel):
                                       verbose_name='Дата добаления рецепта')
 
     class Meta(NamedModel.Meta):
-        """Meta class for model Tag"""
+        """Meta class for model Recipe"""
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-
-    def __str__(self):
-        """String explanation for model"""
-        return self.name
+        default_related_name = 'recipes'
+        ordering = ('-created_at',)
 
 
 class RecipeIngredient(models.Model):
     """Recipe - Ingredient model."""
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE,
                                verbose_name='Рецепт')
-    ingredients = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
-                                    verbose_name='Ингердиенты')
+    ingredient = models.ForeignKey(Ingredient,
+                                   on_delete=models.CASCADE,
+                                   verbose_name='Ингердиенты')
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         validators=[
@@ -175,21 +167,20 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-        """Meta class for model Tag"""
+        """Meta class for model RecipeIngredient"""
         verbose_name = 'Связь рецепта и ингердиента'
         verbose_name_plural = 'Связь рецепта и ингердиента'
-        constraints = [
-            models.UniqueConstraint(
-                fields=('recipe', 'ingredients'),
-                name='unique_recipe_ingredient'
-            )
-        ]
+        constraints = [models.UniqueConstraint(
+            fields=('recipe', 'ingredients'),
+            name='unique_recipe_ingredient'
+        )]
+        default_related_name = 'recipe_ingredients'
         ordering = ('recipe__name',)
 
     def __str__(self):
         """String explanation for model"""
-        return (f'{self.recipe}: {self.ingredients} {self.amount} '
-                f'{self.ingredients.measurement_unit}')
+        return (f'{self.recipe}: {self.ingredient} {self.amount} '
+                f'{self.ingredient.measurement_unit}')
 
 
 class UserRecipeModel(models.Model):
@@ -204,13 +195,12 @@ class UserRecipeModel(models.Model):
                                on_delete=models.CASCADE)
 
     class Meta:
+        """Meta class for model abastact UserRecipe"""
         abstract = True
-        constraints = (
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_user_recipe'
-            ),
-        )
+        constraints = (models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='unique_user_recipe'
+        ))
         ordering = ('user', 'recipe')
 
     def __str__(self):
@@ -221,7 +211,7 @@ class UserRecipeModel(models.Model):
 class Favorite(UserRecipeModel):
     """User avorite recipes model."""
     class Meta(UserRecipeModel.Meta):
-        """Meta class for model Tag"""
+        """Meta class for model Favorite"""
         verbose_name = 'Избранные'
         verbose_name_plural = 'Избранные'
 
@@ -229,6 +219,6 @@ class Favorite(UserRecipeModel):
 class ShoppingCart(models.Model):
     """User ShoppingCart recipes model."""
     class Meta(UserRecipeModel.Meta):
-        """Meta class for model Tag"""
+        """Meta class for model ShoppingCart"""
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
