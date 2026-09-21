@@ -3,14 +3,13 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     """Custom user model."""
     email = models.EmailField(unique=True,
                               verbose_name='Пользовательская почта')
     avatar = models.ImageField(
         upload_to='users/',
         blank=True,
-        null=True,
         verbose_name='Пользовательская аватарка'
     )
     USERNAME_FIELD = 'email'
@@ -28,14 +27,14 @@ class CustomUser(AbstractUser):
 class Following(models.Model):
     """Users following model."""
     user = models.ForeignKey(
-        CustomUser,
+        User,
         on_delete=models.CASCADE,
         related_name='follower_relations',
         verbose_name='Подписывающийся'
     )
 
     following = models.ForeignKey(
-        CustomUser,
+        User,
         on_delete=models.CASCADE,
         related_name='author_relations',
         verbose_name='На кого подписываются'
@@ -110,7 +109,7 @@ class Tag(NamedModel):
 class Recipe(NamedModel):
     """Model Recipe"""
     author = models.ForeignKey(
-        CustomUser,
+        User,
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор рецепта',
@@ -166,7 +165,7 @@ class RecipeIngredient(models.Model):
 
 class Favorite(models.Model):
     """User avorite recipes model."""
-    user = models.ForeignKey(CustomUser,
+    user = models.ForeignKey(User,
                              related_name='favorites',
                              verbose_name='Пользователь',
                              on_delete=models.CASCADE)
@@ -187,7 +186,7 @@ class Favorite(models.Model):
 
 class ShoppingCart(models.Model):
     """User ShoppingCart recipes model."""
-    user = models.ForeignKey(CustomUser,
+    user = models.ForeignKey(User,
                              related_name='shopping_cart',
                              verbose_name='Корзина',
                              on_delete=models.CASCADE)
