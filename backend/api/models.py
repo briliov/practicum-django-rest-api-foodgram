@@ -138,7 +138,13 @@ class Recipe(NamedModel):
                                   related_name='recipes',
                                   verbose_name='Теги рецепта')
     cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления (мин.)')
+        validators=(MinValueValidator(COOKING_MIN_VALUE,
+                                      message=('Время приготовления не может '
+                                               'быть меньще одной минуты')),
+                    MaxValueValidator(COOKING_MAX_VALUE,
+                                      message=('Время приготовления не может'
+                                               'быть больше недели'))
+                    ))
     created_at = models.DateTimeField(auto_now_add=True,
                                       verbose_name='Дата добаления рецепта')
 
@@ -158,7 +164,15 @@ class RecipeIngredient(models.Model):
                                verbose_name='Рецепт')
     ingredients = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
                                     verbose_name='Ингердиенты')
-    amount = models.PositiveIntegerField(verbose_name='Количество')
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
+        validators=[
+            MinValueValidator(AMOUNT_MIN_VALUE,
+                              message='Количество должно быть не менее 1'),
+            MaxValueValidator(AMOUNT_MAX_VALUE,
+                              message='Слишком большое количество')
+        ]
+    )
 
     class Meta:
         """Meta class for model Tag"""
