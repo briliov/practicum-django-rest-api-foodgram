@@ -65,7 +65,8 @@ class Following(models.Model):
 
 class NamedModel(models.Model):
     """Abstract named model."""
-    name = models.CharField(max_length=256, verbose_name='Имя')
+    name = models.CharField(max_length=BASE_NAME_MAX_LENGTH,
+                            verbose_name='Имя')
 
     class Meta:
         abstract = True
@@ -80,8 +81,11 @@ class NamedModel(models.Model):
 
 class Ingredient(NamedModel):
     """Model Ingredient"""
-    measurement_unit = models.CharField(max_length=256,
-                                        verbose_name='Единицы измерения')
+    name = models.CharField(max_length=INGREDIENT_NAME_MAX_LENGTH,
+                            verbose_name='Название ингредиента')
+    measurement_unit = models.CharField(
+        max_length=MEASUREMENT_UNIT_MAX_LENGTH_VALUE,
+        verbose_name='Единицы измерения')
 
     class Meta(NamedModel.Meta):
         """Meta class for model Ingredient"""
@@ -101,7 +105,10 @@ class Ingredient(NamedModel):
 
 class Tag(NamedModel):
     """Model Tag"""
-    slug = models.SlugField(max_length=256, unique=True,
+    name = models.CharField(max_length=TAG_NAME_MAX_LENGTH,
+                            verbose_name='Имя тэга')
+    slug = models.SlugField(max_length=SLUG_MAX_LENGTH_VALUE,
+                            unique=True,
                             verbose_name='Имя уникального индефикатора')
 
     class Meta(NamedModel.Meta):
@@ -116,12 +123,11 @@ class Tag(NamedModel):
 
 class Recipe(NamedModel):
     """Model Recipe"""
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='recipes',
-        verbose_name='Автор рецепта',
-    )
+    name = models.CharField(max_length=RECIPE_NAME_MAX_LENGTH,
+                            verbose_name='Название рецепта')
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE,
+                               verbose_name='Автор рецепта',)
     image = models.ImageField(upload_to='recipes/images/',
                               verbose_name='Картинка рецепта')
     text = models.TextField(verbose_name='Текст рецепта')
