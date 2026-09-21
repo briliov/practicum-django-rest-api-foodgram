@@ -18,6 +18,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Кастомный пользователь'
         verbose_name_plural = 'Кастомные пользователи'
+        ordering = ('email',)
 
     def __str__(self):
         """String explanation for model"""
@@ -50,6 +51,7 @@ class Following(models.Model):
                 name='unique_user_following'
             )
         ]
+        ordering = ('user',)
 
     def __str__(self):
         """String explanation for model"""
@@ -64,6 +66,7 @@ class NamedModel(models.Model):
         abstract = True
         verbose_name = 'Именнованая модель'
         verbose_name_plural = 'Именнованные модели'
+        ordering = ('name',)
 
     def __str__(self):
         """String explanation for model"""
@@ -156,6 +159,7 @@ class RecipeIngredient(models.Model):
                 name='unique_recipe_ingredient'
             )
         ]
+        ordering = ('recipe__name',)
 
     def __str__(self):
         """String explanation for model"""
@@ -178,6 +182,7 @@ class Favorite(models.Model):
         """Meta class for model Tag"""
         verbose_name = 'Избранные'
         verbose_name_plural = 'Избранные'
+        ordering = ('user', 'recipe')
 
     def __str__(self):
         """String explanation for model"""
@@ -199,6 +204,7 @@ class ShoppingCart(models.Model):
         """Meta class for model Tag"""
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
+        ordering = ('user', 'recipe')
 
     def __str__(self):
         """String explanation for model"""
