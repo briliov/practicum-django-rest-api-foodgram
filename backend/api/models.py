@@ -1,6 +1,7 @@
 """Models for API."""
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Q, F
 
 
 class User(AbstractUser):
@@ -45,12 +46,16 @@ class Following(models.Model):
         """Meta class for model Following"""
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=['user', 'following'],
                 name='unique_user_following'
-            )
-        ]
+            ),
+            models.CheckConstraint(
+                condition=~Q(user=F('following')),
+                name='failure_self_following'
+            ),
+        )
         ordering = ('user',)
 
     def __str__(self):
