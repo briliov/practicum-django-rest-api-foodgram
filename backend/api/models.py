@@ -154,7 +154,7 @@ class RecipeIngredient(models.Model):
                                     verbose_name='Ингердиенты')
     amount = models.PositiveIntegerField(verbose_name='Количество')
 
-    class Meta():
+    class Meta:
         """Meta class for model Tag"""
         verbose_name = 'Связь рецепта и ингердиента'
         verbose_name_plural = 'Связь рецепта и ингердиента'
@@ -172,45 +172,43 @@ class RecipeIngredient(models.Model):
                 f'{self.ingredients.measurement_unit}')
 
 
-class Favorite(models.Model):
-    """User avorite recipes model."""
+class UserRecipeModel(models.Model):
+    """Abstract user recipe model."""
     user = models.ForeignKey(User,
-                             related_name='favorites',
+                             related_name='%(class)s_set',
                              verbose_name='Пользователь',
                              on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe,
-                               related_name='favorites_by',
+                               related_name='%(class)s_by',
                                verbose_name='Рецепт',
                                on_delete=models.CASCADE)
 
-    class Meta():
-        """Meta class for model Tag"""
-        verbose_name = 'Избранные'
-        verbose_name_plural = 'Избранные'
+    class Meta:
+        abstract = True
+        constraints = (
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe'
+            ),
+        )
         ordering = ('user', 'recipe')
 
     def __str__(self):
         """String explanation for model"""
-        return f'«{self.recipe}» в избранных «{self.user}»'
+        return f'«{self.recipe}» в {self.__class__.__name__} у «{self.user}»'
+
+
+class Favorite(UserRecipeModel):
+    """User avorite recipes model."""
+    class Meta(UserRecipeModel.Meta):
+        """Meta class for model Tag"""
+        verbose_name = 'Избранные'
+        verbose_name_plural = 'Избранные'
 
 
 class ShoppingCart(models.Model):
     """User ShoppingCart recipes model."""
-    user = models.ForeignKey(User,
-                             related_name='shopping_cart',
-                             verbose_name='Корзина',
-                             on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe,
-                               related_name='shopping_carts',
-                               verbose_name='Рецепт',
-                               on_delete=models.CASCADE)
-
-    class Meta():
+    class Meta(UserRecipeModel.Meta):
         """Meta class for model Tag"""
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
-        ordering = ('user', 'recipe')
-
-    def __str__(self):
-        """String explanation for model"""
-        return f'«{self.recipe}» в корзине «{self.user}»'
