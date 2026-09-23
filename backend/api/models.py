@@ -1,7 +1,7 @@
 """Models for API."""
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Q, F
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from utils.constants import (BASE_NAME_MAX_LENGTH,
@@ -11,28 +11,11 @@ from utils.constants import (BASE_NAME_MAX_LENGTH,
                              COOKING_MIN_VALUE, SLUG_MAX_LENGTH_VALUE,
                              MEASUREMENT_UNIT_MAX_LENGTH_VALUE)
 
-
-class User(AbstractUser):
-    """Custom user model."""
-    email = models.EmailField(unique=True,
-                              verbose_name='Пользовательская почта')
-    avatar = models.ImageField(upload_to='users/',
-                               blank=True,
-                               verbose_name='Пользовательская аватарка')
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
-
-    class Meta:
-        verbose_name = 'Кастомный пользователь'
-        verbose_name_plural = 'Кастомные пользователи'
-        ordering = ('email',)
-
-    def __str__(self):
-        """String explanation for model"""
-        return self.email
+User = get_user_model()
 
 
 class Following(models.Model):
+
     """Users following model."""
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
@@ -200,7 +183,7 @@ class UserRecipeModel(models.Model):
         constraints = (models.UniqueConstraint(
             fields=['user', 'recipe'],
             name='unique_user_recipe'
-        ))
+        ),)
         ordering = ('user', 'recipe')
 
     def __str__(self):

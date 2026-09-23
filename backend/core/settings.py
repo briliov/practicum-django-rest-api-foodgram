@@ -33,9 +33,10 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'api.apps.ApiConfig',
+    'users.apps.UsersConfig'
 ]
 
-AUTH_USER_MODEL = 'api.CustomUser'
+AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

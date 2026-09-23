@@ -1,11 +1,15 @@
-"""Application configuration module for the infrastructure backend API."""
+"""Admin panel configuration for infrastructure API models."""
+
 
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 
-from .models import (CustomUser, Favorite, Following, Ingredient, Recipe,
+from .models import (Favorite, Following, Ingredient, Recipe,
                      ShoppingCart, Tag)
+
+User = get_user_model()
 
 admin.site.site_header = 'Панель управления Foodgram'
 admin.site.site_title = 'Админ панель Foodgram'
@@ -14,12 +18,22 @@ admin.site.index_title = 'Добро пожаловать в управлени�
 admin.site.register([Following, Tag, Favorite, ShoppingCart])
 
 
-@admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
-    """Admin panel interface configurations for managing CustomUser models."""
+class RecipeCountMixin:
+    """
+    Mixin for counting recipe count.
+    Optimize request count and add method display for admin panel.
+    """
+    list_display = ('get_recipe_add_count',)
+    readonly_fields = ('get_recipe_add_count',)
 
-    list_display = ('id', 'username', 'email',)
-    search_fields = ('username', 'email')
+    def get_queryset(self, request):
+        """Optimize request count and add method display for admin panel."""
+        queryset = super().get_queryset(request)  # type: ignore
+        return queryset.annotate(recipe_count=Count('recipes'), distinct=True)
+
+    @admin.display(description='Рецепты')
+    def get_recipe_add_count(self, obj):
+        return obj.recipe_count
 
 
 @admin.register(Recipe)
