@@ -2,10 +2,12 @@
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from api.admin import RecipeCountMixin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.safestring import mark_safe
 from django.db.models import Count
+
+from entities.recipes.admin import RecipeCountMixin
+from .models import Following
 
 User = get_user_model()
 
@@ -51,3 +53,5 @@ class CustomUserAdmin(RecipeCountMixin, UserAdmin):
     def get_subscribers_count(self, obj):
         """Discplays subscribers count."""
         return obj.subscribers_count
+
+admin.site.register([Following])

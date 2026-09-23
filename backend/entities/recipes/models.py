@@ -1,6 +1,7 @@
-"""Models for API."""
+"""Models for recipe applocation."""
+
+
 from django.db import models
-from django.db.models import Q, F
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -12,39 +13,6 @@ from utils.constants import (BASE_NAME_MAX_LENGTH,
                              MEASUREMENT_UNIT_MAX_LENGTH_VALUE)
 
 User = get_user_model()
-
-
-class Following(models.Model):
-
-    """Users following model."""
-    user = models.ForeignKey(User,
-                             on_delete=models.CASCADE,
-                             verbose_name='Подписывающийся')
-
-    following = models.ForeignKey(User,
-                                  on_delete=models.CASCADE,
-                                  verbose_name='На кого подписываются')
-
-    class Meta:
-        """Meta class for model Following"""
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
-        default_related_name = 'followings'
-        constraints = (
-            models.UniqueConstraint(
-                fields=['user', 'following'],
-                name='unique_user_following'
-            ),
-            models.CheckConstraint(
-                condition=~Q(user=F('following')),
-                name='failure_self_following'
-            ),
-        )
-        ordering = ('user',)
-
-    def __str__(self):
-        """String explanation for model"""
-        return f'«{self.user}» подписан на «{self.following}»'
 
 
 class NamedModel(models.Model):
@@ -154,7 +122,7 @@ class RecipeIngredient(models.Model):
         verbose_name = 'Связь рецепта и ингердиента'
         verbose_name_plural = 'Связь рецепта и ингердиента'
         constraints = [models.UniqueConstraint(
-            fields=('recipe', 'ingredients'),
+            fields=('recipe', 'ingredient'),
             name='unique_recipe_ingredient'
         )]
         default_related_name = 'recipe_ingredients'
@@ -182,7 +150,7 @@ class UserRecipeModel(models.Model):
         abstract = True
         constraints = (models.UniqueConstraint(
             fields=['user', 'recipe'],
-            name='unique_user_recipe'
+            name='unique_%(class)s_user_recipe'
         ),)
         ordering = ('user', 'recipe')
 
@@ -199,7 +167,7 @@ class Favorite(UserRecipeModel):
         verbose_name_plural = 'Избранные'
 
 
-class ShoppingCart(models.Model):
+class ShoppingCart(UserRecipeModel):
     """User ShoppingCart recipes model."""
     class Meta(UserRecipeModel.Meta):
         """Meta class for model ShoppingCart"""

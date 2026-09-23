@@ -1,12 +1,11 @@
 """Admin panel configuration for infrastructure API models."""
 
-
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 
-from .models import (Favorite, Following, Ingredient, Recipe,
+from .models import (Favorite, Ingredient, Recipe,
                      ShoppingCart, Tag)
 
 User = get_user_model()
@@ -15,7 +14,7 @@ admin.site.site_header = 'Панель управления Foodgram'
 admin.site.site_title = 'Админ панель Foodgram'
 admin.site.index_title = 'Добро пожаловать в управление проетом!'
 
-admin.site.register([Following, Tag, Favorite, ShoppingCart])
+admin.site.register([Tag, Favorite, ShoppingCart])
 
 
 class RecipeCountMixin:

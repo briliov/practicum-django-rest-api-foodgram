@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django_filters.rest_framework import filters
 from rest_framework.filters import SearchFilter
 
-from .models import Recipe
+from entities.recipes.models import Recipe
 
 User = get_user_model()
 

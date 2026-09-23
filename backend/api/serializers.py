@@ -6,7 +6,9 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from drf_extra_fields.fields import Base64ImageField
 
-from .models import Following, Ingredient, Recipe, RecipeIngredient, Tag
+from entities.recipes.models import (Ingredient, Recipe,
+                                     RecipeIngredient, Tag)
+from entities.users.models import Following
 
 User = get_user_model()
 

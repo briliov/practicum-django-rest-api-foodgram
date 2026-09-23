@@ -18,8 +18,9 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from .filters import IngredientFilter, RecipeFilter
-from .models import (Favorite, Following, Ingredient, Recipe, RecipeIngredient,
-                     ShoppingCart, Tag)
+from entities.recipes.models import (Favorite, Ingredient, Recipe,
+                                     RecipeIngredient, ShoppingCart, Tag)
+from entities.users.models import Following
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AvatarSerializer, FollowingSerializer,
