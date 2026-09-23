@@ -91,19 +91,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 @admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
+class IngredientAdmin(RecipeCountMixin, admin.ModelAdmin):
     """Admin panel interface configurations for managing Ingredient models."""
 
-    list_display = ('name', 'measurement_unit', 'get_recipe_add_count')
+    list_display = ('name',
+                    'measurement_unit',) + RecipeCountMixin.list_display
     search_fields = ('name',)
     list_filter = ('measurement_unit',)
-
-    def get_queryset(self, request):
-        """Get Ingredient queryset with annotated recipe count."""
-        queryset = super().get_queryset(request)
-        return queryset.annotate(in_recipe_count=Count('recipes'))
-
-    @admin.display(description='Число добавлений в рецепты')
-    def get_recipe_add_count(self, obj):
-        """Calculates the aggregate count of Recipe with Ingredient."""
-        return obj.in_recipe_count

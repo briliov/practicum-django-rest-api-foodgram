@@ -7,5 +7,5 @@ from django.utils.translation import gettext_lazy as _
 class UsersConfig(AppConfig):
     """Configuration class for the users application package."""
 
-    name = 'users'
+    name = 'entities.users'
     verbose_name = _('Пользователи')

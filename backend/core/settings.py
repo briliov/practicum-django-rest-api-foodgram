@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'api.apps.ApiConfig',
-    'users.apps.UsersConfig'
+    'entities.users.apps.UsersConfig'
 ]
 
 AUTH_USER_MODEL = 'users.User'
