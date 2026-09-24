@@ -1,7 +1,8 @@
 """Admin panel configuration for users application models."""
 
 from django.contrib import admin
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from rest_framework.authtoken.models import TokenProxy as Token
 from django.contrib.auth.admin import UserAdmin
 from django.utils.safestring import mark_safe
 from django.db.models import Count
@@ -9,7 +10,7 @@ from django.db.models import Count
 from entities.recipes.admin import RecipeCountMixin
 from .models import Following
 
-User = get_user_model()
+admin.site.unregister((Group, Token))
 
 
 @admin.register(User)
