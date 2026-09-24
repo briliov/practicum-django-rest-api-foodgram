@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.db.models import Count
 
 from entities.recipes.admin import RecipeCountMixin
-from .models import Following
+from .models import Following, User
 
 admin.site.unregister((Group, Token))
 
@@ -24,7 +24,11 @@ class CustomUserAdmin(RecipeCountMixin, UserAdmin):
                     'get_image',
                     'get_subscribers_count') + RecipeCountMixin.list_display
     search_fields = ('username', 'email')
-    readonly_fields = ('get_image',) + RecipeCountMixin.list_display
+    fieldsets = UserAdmin.fieldsets + (  # type: ignore
+        ('Дополнительно', {'fields': ('avatar', 'get_subscribers_count')}),
+    )
+    readonly_fields = ('get_subscribers_count',
+                       ) + RecipeCountMixin.list_display
 
     def get_queryset(self, request):
         """Get User queryset with annotated subscribers_count count."""
