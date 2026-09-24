@@ -2,7 +2,7 @@
 import logging
 import pandas
 from django.core.management.base import BaseCommand
-from api.models import Ingredient
+from entities.recipes.models import Ingredient
 
 logger = logging.getLogger(__name__)
 
