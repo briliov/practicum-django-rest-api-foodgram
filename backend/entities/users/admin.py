@@ -10,6 +10,10 @@ from django.db.models import Count
 from entities.recipes.admin import RecipeCountMixin
 from .models import Following, User
 
+admin.site.site_header = 'Панель управления Foodgram'
+admin.site.site_title = 'Админ панель Foodgram'
+admin.site.index_title = 'Добро пожаловать в управление проектом!'
+
 admin.site.unregister((Group, Token))
 
 

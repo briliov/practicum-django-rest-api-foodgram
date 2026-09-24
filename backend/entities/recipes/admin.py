@@ -5,16 +5,10 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 
-from .models import (Favorite, Ingredient, Recipe,
-                     ShoppingCart, Tag)
+from .models import (Ingredient, Recipe, RecipeIngredient,
+                     Tag, ShoppingCart, Favorite)
 
 User = get_user_model()
-
-admin.site.site_header = 'Панель управления Foodgram'
-admin.site.site_title = 'Админ панель Foodgram'
-admin.site.index_title = 'Добро пожаловать в управление проетом!'
-
-admin.site.register([Tag, Favorite, ShoppingCart])
 
 
 class RecipeCountMixin:
@@ -35,6 +29,15 @@ class RecipeCountMixin:
         return obj.recipe_count
 
 
+class RecipeIngredientInline(admin.TabularInline):
+    """Provides an inline formset for adding ingredients directly on the
+    recipe page."""
+    model = RecipeIngredient
+    autocomplete_fields = ('ingredient',)
+    extra = 1
+    min_num = 1
+
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Admin panel interface configurations for managing Recipe models."""
@@ -50,12 +53,14 @@ class RecipeAdmin(admin.ModelAdmin):
                      'author__username',
                      'tags__name',
                      'ingredients__name')
+    inlines = (RecipeIngredientInline,)
+    filter_horizontal = ('tags',)
     list_filter = ('tags', 'author__username')
 
     def get_queryset(self, request):
         """Get Recipe queryset with annotated favorites count."""
         queryset = super().get_queryset(request)
-        return queryset.annotate(in_favorites_count=Count('favorites_by'))
+        return queryset.annotate(in_favorites_count=Count('favorite_by'))
 
     @admin.display(description='Теги')
     def get_tags(self, obj):
@@ -84,8 +89,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Число добавлений в избранное')
     def get_favorite_add_count(self, obj):
-        """Display the calculated number of times the previous recipe was added
-        to favorites."""
+        """
+        Display the calculated number of times the previous recipe was added
+        to favorites.
+        """
         return obj.in_favorites_count
 
 
@@ -97,3 +104,29 @@ class IngredientAdmin(RecipeCountMixin, admin.ModelAdmin):
                     'measurement_unit',) + RecipeCountMixin.list_display
     search_fields = ('name',)
     list_filter = ('measurement_unit',)
+
+
+@admin.register(RecipeIngredient)
+class RecipeIngredientAdmin(admin.ModelAdmin):
+    """Admin panel configuration for Recipe and Ingredient relations."""
+    list_display = ('id', 'recipe', 'ingredient', 'amount')
+    search_fields = ('recipe__name', 'ingredient__name')
+    list_filter = ('recipe',)
+
+
+@admin.register(Tag)
+class TagAdmin(RecipeCountMixin, admin.ModelAdmin):
+    """Admin panel interface configurations for managing Tag models."""
+    list_display = ('name', 'slug',) + RecipeCountMixin.list_display
+    search_fields = ('name',)
+
+
+@admin.register(Favorite, ShoppingCart)
+class UserRecipeRelationsAdmin(admin.ModelAdmin):
+    """
+    Admin panel interface configurations for managing Favorite and
+    ShoppingCart models.
+    """
+    list_display = ('user', 'recipe',)
+    search_fields = ('user__username', 'recipe__name')
+    list_filter = ('user',)
