@@ -28,7 +28,7 @@ class RecipeCountMixin:
     def get_queryset(self, request):
         """Optimize request count and add method display for admin panel."""
         queryset = super().get_queryset(request)  # type: ignore
-        return queryset.annotate(recipe_count=Count('recipes'), distinct=True)
+        return queryset.annotate(recipe_count=Count('recipes', distinct=True))
 
     @admin.display(description='Рецепты')
     def get_recipe_add_count(self, obj):

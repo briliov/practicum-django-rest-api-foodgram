@@ -26,10 +26,11 @@ class CustomUserAdmin(RecipeCountMixin, UserAdmin):
     readonly_fields = ('get_image',) + RecipeCountMixin.list_display
 
     def get_queryset(self, request):
-        """Get Recipe queryset with annotated favorites count."""
+        """Get User queryset with annotated subscribers_count count."""
         queryset = super().get_queryset(request)
-        return queryset.annotate(subscribers_count=Count('author_relations'),
-                                 distinct=True)
+        return queryset.annotate(
+            subscribers_count=Count('subscribers', distinct=True)
+        )
 
     @admin.display(description='Аватарка')
     def get_image(self, obj):
