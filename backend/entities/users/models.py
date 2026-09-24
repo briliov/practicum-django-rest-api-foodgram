@@ -42,7 +42,6 @@ class Following(models.Model):
         """Meta class for model Following"""
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        default_related_name = 'followings'
         constraints = (
             models.UniqueConstraint(
                 fields=['user', 'following'],

@@ -55,4 +55,8 @@ class CustomUserAdmin(RecipeCountMixin, UserAdmin):
         """Discplays subscribers count."""
         return obj.subscribers_count
 
-admin.site.register([Following])
+
+@admin.register(Following)
+class FollowingAdmin(admin.ModelAdmin):
+    """Admin panel interface configurations for managing Following models."""
+    list_display = ('user', 'following')
