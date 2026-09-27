@@ -5,72 +5,18 @@ from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from drf_extra_fields.fields import Base64ImageField
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 
 from entities.recipes.models import (Ingredient, Recipe,
                                      RecipeIngredient, Tag)
 from entities.users.models import Following
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 User = get_user_model()
 
 
-class UsersCreateSerializer(serializers.ModelSerializer):
-    """Serializer configuration for managing User registration flows."""
-
-    class Meta:
-        """Meta options mapping fields against the baseline User schema."""
-
-        model = User
-        fields = ('id',
-                  'email',
-                  'username',
-                  'first_name',
-                  'last_name',
-                  'password',)
-
-        extra_kwargs = {
-            'email': {
-                'required': True,
-                'validators': [UniqueValidator(
-                    queryset=User.objects.all(),
-                    message="Пользователь с таким email уже существует.")]
-            },
-            'username': {
-                'required': True,
-                'validators': [
-                    UniqueValidator(
-                        queryset=User.objects.all(),
-                        message="Пользователь с таким username уже существует."
-                    ),
-                    RegexValidator(
-                        regex=r'^[\w.@+-]+\Z',
-                        message='Некорректное имя пользователя.'
-                    )]
-            },
-            'password': {
-                'required': True,
-                'write_only': True
-            },
-            'first_name': {
-                'required': True
-            },
-            'last_name': {
-                'required': True
-            },
-        }
-
-    def create(self, validated_data):
-        """Creates a new database User object and handles password hashing."""
-        password = validated_data.pop('password', None)
-        user = User.objects.create_user(**validated_data)
-        if password:
-            user.set_password(password)
-            user.save()
-        return user
-
-
 class AvatarSerializer(serializers.ModelSerializer):
     """Serializer configuration for handling user thumbnail configurations."""
-
     avatar = Base64ImageField(required=True, allow_null=False)
 
     class Meta:
@@ -80,25 +26,24 @@ class AvatarSerializer(serializers.ModelSerializer):
         fields = ('avatar',)
 
 
-class UsersSerializer(UsersCreateSerializer, AvatarSerializer):
-    """Comprehensive Serializer managing standard profile operations."""
+class UserSerializer(DjoserUserSerializer):
+    class Meta(DjoserUserSerializer.Meta):
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+                  'avatar')
 
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
-    class Meta(UsersCreateSerializer.Meta, AvatarSerializer.Meta):
-        """Meta inheritance layout combining fields from base components."""
+class UserSubscribeSerializer(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField()
 
-        fields = (UsersCreateSerializer.Meta.fields
-                  + AvatarSerializer.Meta.fields
-                  + ('is_subscribed', ))
+    class Meta(UserSerializer.Meta):
+        fields = ('is_subscribed',) + UserSerializer.Meta.fields
 
-    def get_is_subscribed(self, obj) -> bool:
-        """Determines active subscription status between profiles."""
+    def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
+        if (request is None) or request.user.is_anonymous:
             return False
-        return Following.objects.filter(user=request.user, following=obj
-                                        ).exists()
+        return request.user.subscriptions.filter(user=obj).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -172,7 +117,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     """
     image = Base64ImageField()
     tags = TagSerializer(read_only=True, many=True)
-    author = UsersSerializer(read_only=True)
+    author = UserSerializer(read_only=True)
     ingredients = IngredientAmountSerializer(
         source='recipeingredient_set',
         many=True,
@@ -310,93 +255,3 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.create_ingredients(validated_data.get('ingredients'), instance)
         instance.save()
         return instance
-
-
-class FollowingSerializer(serializers.ModelSerializer):
-    """Serializer for user subscriptions and profile display.
-
-    Includes user details, subscription status, author's recipes,
-    and the total count of their recipes.
-    """
-
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
-    recipes_count = serializers.SerializerMethodField(read_only=True)
-    recipes = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count',
-            'avatar',
-        )
-        read_only_fields = (
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'recipes',
-            'recipes_count',
-            'avatar',
-        )
-
-    def validate(self, attrs):
-        """Validate the subscription request.
-
-        Prevents users from subscribing to themselves or duplicating
-        an existing subscription.
-        """
-        request = self.context['request']
-        author_id = self.context['view'].kwargs.get('pk')
-
-        # Check if the user is trying to subscribe to themselves
-        if request.user.id == int(author_id):
-            raise serializers.ValidationError(
-                'Нельзя подписаться на самого себя.')
-        if Following.objects.filter(user=request.user,
-                                    following_id=author_id).exists():
-            raise serializers.ValidationError('Вы уже подписаны.')
-        return attrs
-
-    def create(self, validated_data):
-        """Create a subscription between the current user and the author."""
-        request = self.context['request']
-        author_id = self.context['view'].kwargs.get('pk')
-        Following.objects.create(user=request.user, following_id=author_id)
-        return User.objects.get(id=author_id)
-
-    def get_is_subscribed(self, obj) -> bool:
-        """Check if the current user is subscribed to the author."""
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return Following.objects.filter(
-            user=request.user,
-            following=obj
-        ).exists()
-
-    def get_recipes_count(self, obj) -> int:
-        """Return the total number of recipes published by the author."""
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return 0
-        return Recipe.objects.filter(author=obj).count()
-
-    def get_recipes(self, obj):
-        """Return the author's recipes with an optional limit constraint."""
-        request = self.context.get('request')
-        queryset = obj.recipes.all()
-
-        if request:
-            limit = request.query_params.get('recipes_limit')
-            if limit and limit.isdigit():
-                queryset = queryset[:int(limit)]
-        serializer = ShortRecipeSerializer(queryset, many=True,
-                                           context={'request': request})
-        return serializer.data

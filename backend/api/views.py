@@ -10,11 +10,10 @@ from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema
-from rest_framework import mixins, permissions, status, viewsets
+from djoser.views import UserViewSet
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.response import Response
 
 from .filters import IngredientFilter, RecipeFilter
@@ -23,93 +22,61 @@ from entities.recipes.models import (Favorite, Ingredient, Recipe,
 from entities.users.models import Following
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (AvatarSerializer, FollowingSerializer,
+from .serializers import (AvatarSerializer,
                           IngredientsSerializer, RecipeSerializer,
                           ShortRecipeSerializer, TagSerializer,
-                          UsersCreateSerializer, UsersSerializer)
+                          UserSerializer)
 from .utils import generate_shopping_cart_pdf
 
 User = get_user_model()
 
 
-class UsersViewSet(mixins.RetrieveModelMixin,
-                   mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.UpdateModelMixin,
-                   viewsets.GenericViewSet):
+class UsersViewSet(UserViewSet):
     """ViewSet for viewing, creating, and modifying User instances."""
 
-    queryset = User.objects.all()
-    serializer_class = UsersSerializer
-    pagination_class = LimitOffsetPagination
-
-    def get_serializer_class(self):  # type: ignore
-        """Return context-specific serializer classes based on the action."""
-        if self.action == 'create':
-            return UsersCreateSerializer
-        return super().get_serializer_class()
-
-    @action(detail=False, methods=['get'], url_path='me',
-            permission_classes=[permissions.IsAuthenticated],
-            pagination_class=None)
-    def current_user(self, request):
-        """Retrieve the profile data of the currently authenticated user."""
-        return Response(self.get_serializer(request.user).data,
-                        status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['put', 'delete'], url_path='me/avatar',
+    @action(detail=False, methods=('put',), url_path='me/avatar',
             permission_classes=[permissions.IsAuthenticated],
             serializer_class=AvatarSerializer)
-    def user_image(self, request):
+    def change_user_image(self, request):
         """Update or completely remove the authenticated user's avatar
         image."""
-        if request.method == 'DELETE':
-            if request.user.avatar:
-                request.user.avatar.delete(save=True)
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response({'detail': 'У вас нет аватара для удаления.'},
-                            status=status.HTTP_204_NO_CONTENT)
         serializer = self.get_serializer(request.user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @extend_schema(summary='Изменение пароля')
-    @action(detail=False, methods=['post'], url_path='set_password',
-            permission_classes=[permissions.IsAuthenticated],)
-    def change_user_password(self, request):
-        """Verify the current password and set a new password for the user."""
-        if not request.user.check_password(request.data['current_password']):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        request.user.set_password(request.data['new_password'])
-        request.user.save()
+    @change_user_image.mapping.delete
+    def delete_user_image(self, request):
+        """Remove the authenticated user's avatar."""
+        if request.user.avatar:
+            request.user.avatar.delete(save=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=('post', 'delete'), url_path='subscribe',
+    @action(detail=True, methods=('post',), url_path='subscribe',
             permission_classes=(permissions.IsAuthenticated,),
-            serializer_class=FollowingSerializer)
+            serializer_class=UserSerializer)
     def subscribe(self, request, pk=None, *args, **kwargs):
-        """Follow or unfollow an author identified by their primary key
-        (pk)."""
-        get_object_or_404(User, id=pk)
-        if request.method == 'POST':
-            return self.create(request, *args, **kwargs)
-        if request.method == 'DELETE':
-            deleted, _ = Following.objects.filter(user=request.user,
-                                                  following_id=pk).delete()
-            if not deleted:
-                raise ValidationError(
-                    'Вы не были подписаны на этого пользователя.')
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        """Follow an author identified by their primary key (pk)."""
+        return self.create(request, *args, **kwargs)
+
+    @subscribe.mapping.delete
+    def unsubscribe(self, request, pk=None, *args, **kwargs):
+        """Unfollow an author identified by their primary key (pk)."""
+        if not User.objects.filter(id=pk).exists():
+            raise NotFound('Пользователь не найден.')
+        deleted, _ = Following.objects.filter(user=request.user,
+                                              following_id=pk).delete()
+        if not deleted:
+            raise ValidationError('Вы не были подписаны на этого пользователя')
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=('get',), url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
-            serializer_class=FollowingSerializer,)
+            serializer_class=UserSerializer,)
     def subscriptions(self, request, *args, **kwargs):
         """Return a paginated list of authors followed by the active user."""
-        self.queryset = User.objects.filter(
-            author_relations__user=request.user)
+        self.queryset = self.get_queryset().filter(
+            author_relations__user=request.user).prefetch_related('recipes')
         return self.list(request, *args, **kwargs)
 
 

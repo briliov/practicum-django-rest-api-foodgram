@@ -128,17 +128,16 @@ MEDIA_ROOT = BASE_DIR / MEDIA_SOURCE
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DJOSER = {
-    'LOGIN_FIELD': 'email',
-}
-
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
+
     'PAGE_SIZE_QUERY_PARAM': 'limit',
     'PAGE_SIZE': PAGE_SIZE,
 
@@ -148,6 +147,19 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
 }
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSubscribeSerializer',
+        'current_user': 'api.serializers.UserSubscribeSerializer',
+    },
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',)
+    }
+}
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
