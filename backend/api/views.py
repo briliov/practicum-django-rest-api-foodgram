@@ -34,6 +34,11 @@ User = get_user_model()
 class UsersViewSet(UserViewSet):
     """ViewSet for viewing, creating, and modifying User instances."""
 
+    def get_permissions(self):
+        if self.action == "me":
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
+
     @action(detail=False, methods=('put',), url_path='me/avatar',
             permission_classes=[permissions.IsAuthenticated],
             serializer_class=AvatarSerializer)
