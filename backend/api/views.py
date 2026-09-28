@@ -11,10 +11,13 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from django.db.models import Count
+from django.db.models import Exists, OuterRef, Value, BooleanField
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from .filters import IngredientFilter, RecipeFilter
 from entities.recipes.models import (Favorite, Ingredient, Recipe,
@@ -24,8 +27,8 @@ from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AvatarSerializer,
                           IngredientsSerializer, RecipeSerializer,
-                          ShortRecipeSerializer, TagSerializer,
-                          UserSerializer)
+                          TagSerializer, UserSubscribeSerializer,
+                          RecipeUserSubscribeSerializer)
 from .utils import generate_shopping_cart_pdf
 
 User = get_user_model()
@@ -33,6 +36,25 @@ User = get_user_model()
 
 class UsersViewSet(UserViewSet):
     """ViewSet for viewing, creating, and modifying User instances."""
+    serializer_class = UserSubscribeSerializer
+    pagination_class = LimitPageNumberPagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
+                is_subscribed=Exists(Following.objects.filter(
+                    user=self.request.user, following=OuterRef('id'))))
+        else:
+            queryset = queryset.annotate(
+                is_subscribed=Value(False, output_field=BooleanField()))
+        if self.action in ('subscribe', 'subscriptions'):
+            queryset = queryset.annotate(recipes_count=Count('recipes')
+                                         ).prefetch_related('recipes')
+        return queryset
+
+    def get_instance(self):
+        return self.get_queryset().get(pk=self.request.user.pk)
 
     def get_permissions(self):
         if self.action == "me":
@@ -53,35 +75,43 @@ class UsersViewSet(UserViewSet):
     @change_user_image.mapping.delete
     def delete_user_image(self, request):
         """Remove the authenticated user's avatar."""
-        if request.user.avatar:
-            request.user.avatar.delete(save=True)
+        request.user.avatar.delete(save=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=('post',), url_path='subscribe',
             permission_classes=(permissions.IsAuthenticated,),
-            serializer_class=UserSerializer)
-    def subscribe(self, request, pk=None, *args, **kwargs):
+            serializer_class=RecipeUserSubscribeSerializer)
+    def subscribe(self, request, id=None):
         """Follow an author identified by their primary key (pk)."""
-        return self.create(request, *args, **kwargs)
+        following = get_object_or_404(self.get_queryset(), id=id)
+        if request.user == following:
+            raise ValidationError(
+                {'errors': 'Вы не можете подписаться на самого себя.'})
+        if Following.objects.filter(user=self.request.user,
+                                    following=following).exists():
+            raise ValidationError(
+                {'error': 'Вы не можете подписаться дважды.'})
+        Following.objects.create(user=self.request.user,
+                                 following=following)
+        return Response(self.get_serializer(following).data,
+                        status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
-    def unsubscribe(self, request, pk=None, *args, **kwargs):
+    def unsubscribe(self, request, id=None, *args, **kwargs):
         """Unfollow an author identified by their primary key (pk)."""
-        if not User.objects.filter(id=pk).exists():
+        if not User.objects.filter(id=id).exists():
             raise NotFound('Пользователь не найден.')
         deleted, _ = Following.objects.filter(user=request.user,
-                                              following_id=pk).delete()
+                                              following_id=id).delete()
         if not deleted:
             raise ValidationError('Вы не были подписаны на этого пользователя')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=('get',), url_path='subscriptions',
             permission_classes=(permissions.IsAuthenticated,),
-            serializer_class=UserSerializer,)
+            serializer_class=RecipeUserSubscribeSerializer,)
     def subscriptions(self, request, *args, **kwargs):
         """Return a paginated list of authors followed by the active user."""
-        self.queryset = self.get_queryset().filter(
-            author_relations__user=request.user).prefetch_related('recipes')
         return self.list(request, *args, **kwargs)
 
 

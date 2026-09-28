@@ -7,8 +7,8 @@ from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 
-from entities.recipes.models import (Ingredient, Recipe,
-                                     RecipeIngredient, Tag)
+from entities.recipes.models import (Ingredient, Recipe, RecipeIngredient, Tag,
+                                     ShoppingCart, Favorite, UserRecipeModel)
 from entities.users.models import Following
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
@@ -33,17 +33,14 @@ class UserSerializer(DjoserUserSerializer):
                   'avatar')
 
 
-class UserSubscribeSerializer(UserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
+class UserSubscribeSerializer(UserSerializer, AvatarSerializer):
+    """Serializer with boolean parameter is_subscribed."""
+    is_subscribed = serializers.BooleanField(read_only=True)
 
-    class Meta(UserSerializer.Meta):
-        fields = ('is_subscribed',) + UserSerializer.Meta.fields
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if (request is None) or request.user.is_anonymous:
-            return False
-        return request.user.subscriptions.filter(user=obj).exists()
+    class Meta(UserSerializer.Meta, AvatarSerializer.Meta):
+        """Meta class for UserSubscribeSerializer."""
+        fields = (UserSerializer.Meta.fields + AvatarSerializer.Meta.fields
+                  + ('is_subscribed',))
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -53,11 +50,7 @@ class TagSerializer(serializers.ModelSerializer):
         """Meta mapping definitions tracking properties against Tag schema."""
 
         model = Tag
-        fields = (
-            'id',
-            'name',
-            'slug'
-        )
+        fields = ('id', 'name', 'slug')
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
@@ -67,34 +60,14 @@ class IngredientsSerializer(serializers.ModelSerializer):
         """Meta descriptions linking fields against Ingredient model layout."""
 
         model = Ingredient
-        fields = (
-            'id',
-            'name',
-            'measurement_unit'
-        )
-
-
-class ShortRecipeSerializer(serializers.ModelSerializer):
-    """Minified data serialization targeting subscription review panels."""
-
-    class Meta:
-        """Meta targets pinning minified records to Recipe models."""
-
-        model = Recipe
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredients.id')
     name = serializers.ReadOnlyField(source='ingredients.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredients.measurement_unit'
-    )
+        source='ingredients.measurement_unit')
 
     class Meta:
         model = RecipeIngredient
@@ -255,3 +228,27 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.create_ingredients(validated_data.get('ingredients'), instance)
         instance.save()
         return instance
+
+
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    """Minified data serialization targeting subscription review panels."""
+
+    class Meta:
+        """Meta targets pinning minified records to Recipe models."""
+
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class RecipeUserSubscribeSerializer(UserSubscribeSerializer):
+    """
+    Serializer for user with recipes, recipes_count and is_subscribed
+    parameters.
+    """
+    recipes = ShortRecipeSerializer(many=True, read_only=True)
+    recipes_count = serializers.IntegerField(read_only=True)
+
+    class Meta(UserSubscribeSerializer.Meta):
+        fields = UserSubscribeSerializer.Meta.fields + (
+            'recipes', 'recipes_count',)
+
