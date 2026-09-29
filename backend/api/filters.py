@@ -5,14 +5,20 @@ from django.contrib.auth import get_user_model
 from django_filters.rest_framework import filters
 from rest_framework.filters import SearchFilter
 
-from entities.recipes.models import Recipe
+from entities.recipes.models import Recipe, Ingredient
 
 User = get_user_model()
 
 
-class IngredientFilter(SearchFilter):
+class IngredientFilter(django_filters.FilterSet):
     """Filter set for parsing ingredient queries inside database indices."""
-    search_param = 'name'
+    name = django_filters.CharFilter(field_name='name',
+                                     lookup_expr='istartswith')
+
+    class Meta:
+        """Meta class for IngredientFilter."""
+        model = Ingredient
+        fields = ('name',)
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -35,5 +41,6 @@ class RecipeFilter(django_filters.FilterSet):
         return queryset
 
     class Meta:
+        """Meta class for RecipeFilter."""
         model = Recipe
         fields = ('tags', 'author')
