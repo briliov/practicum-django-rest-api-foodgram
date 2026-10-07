@@ -6,29 +6,30 @@ Cart).
 """
 
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
+from django.db.models import (BooleanField, Count, Exists, OuterRef, Sum,
+                              Value, Prefetch, Subquery)
 from django.http import FileResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from django.db.models import Count
-from django.db.models import Exists, OuterRef, Value, BooleanField
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from .filters import IngredientFilter, RecipeFilter
 from entities.recipes.models import (Favorite, Ingredient, Recipe,
                                      RecipeIngredient, ShoppingCart, Tag)
 from entities.users.models import Following
+
+from .filters import IngredientFilter, RecipeFilter
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (AvatarSerializer,
-                          IngredientsSerializer, RecipeSerializer,
+from .serializers import (AvatarSerializer, IngredientsSerializer,
+                          ReadRecipeSerializer, RecipeUserSubscribeSerializer,
                           TagSerializer, UserSubscribeSerializer,
-                          RecipeUserSubscribeSerializer)
+                          WriteRecipeSerializer, ShortRecipeSerializer)
 from .utils import generate_shopping_cart_pdf
 
 User = get_user_model()
@@ -40,17 +41,31 @@ class UsersViewSet(UserViewSet):
     pagination_class = LimitPageNumberPagination
 
     def get_queryset(self):
+        """Obtaining a sample with annotated and limited data."""
         queryset = super().get_queryset()
+
+        is_subscribed = Value(False, output_field=BooleanField())
         if self.request.user.is_authenticated:
-            queryset = queryset.annotate(
-                is_subscribed=Exists(Following.objects.filter(
-                    user=self.request.user, following=OuterRef('id'))))
-        else:
-            queryset = queryset.annotate(
-                is_subscribed=Value(False, output_field=BooleanField()))
+            is_subscribed = Exists(Following.objects.filter(
+                user=self.request.user, following=OuterRef('id')))
+        queryset = queryset.annotate(is_subscribed=is_subscribed)
+
         if self.action in ('subscribe', 'subscriptions'):
-            queryset = queryset.annotate(recipes_count=Count('recipes')
-                                         ).prefetch_related('recipes')
+            queryset = queryset.annotate(recipes_count=Count('recipes'))
+
+            recipes_limit = self.request.query_params.get('recipes_limit')
+            if recipes_limit and recipes_limit.isdigit():
+                recipes_subquery = Recipe.objects.filter(
+                    author_id=OuterRef('id')
+                ).values('id')[:int(recipes_limit)]
+                queryset = queryset.prefetch_related(
+                    Prefetch('recipes',
+                             queryset=Recipe.objects.filter(
+                                 id__in=Subquery(recipes_subquery)))
+                )
+            else:
+                queryset = queryset.prefetch_related('recipes')
+
         return queryset
 
     def get_instance(self):

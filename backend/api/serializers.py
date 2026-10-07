@@ -63,24 +63,61 @@ class IngredientsSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class IngredientAmountSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='ingredients.id')
-    name = serializers.ReadOnlyField(source='ingredients.name')
+class ReadIngredientAmountSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredients.measurement_unit')
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=RecipeIngredient.objects.all(),
-                fields=['ingredient', 'recipe']
-            )
-        ]
 
 
-class RecipeSerializer(serializers.ModelSerializer):
+class WriteIngredientAmountSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
+    )
+    amount = serializers.IntegerField(min_value=1)
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
+
+
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    """Minified data serialization targeting subscription review panels."""
+
+    class Meta:
+        """Meta targets pinning minified records to Recipe models."""
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class ReadRecipeSerializer(ShortRecipeSerializer):
+    """Read serializer for Recipe model"""
+    tags = TagSerializer(read_only=True, many=True)
+    author = UserSubscribeSerializer(read_only=True)
+    ingredients = ReadIngredientAmountSerializer(source='recipe_ingredients',
+                                                 many=True,
+                                                 read_only=True)
+    is_favorited = serializers.BooleanField(read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(read_only=True)
+
+    class Meta(ShortRecipeSerializer.Meta):
+        """Meta class for ReadRecipeSerializer."""
+        fields = ShortRecipeSerializer.Meta.fields + (
+            'text',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+        )
+
+
+class WriteRecipeSerializer(serializers.ModelSerializer):
     """
     Serializer for managing recipe creation, retrieval, and updates.
 
