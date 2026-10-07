@@ -1,16 +1,16 @@
 """Models for recipe applocation."""
 
 
-from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
-from utils.constants import (BASE_NAME_MAX_LENGTH,
-                             AMOUNT_MAX_VALUE, AMOUNT_MIN_VALUE,
-                             TAG_NAME_MAX_LENGTH, INGREDIENT_NAME_MAX_LENGTH,
-                             RECIPE_NAME_MAX_LENGTH, COOKING_MAX_VALUE,
-                             COOKING_MIN_VALUE, SLUG_MAX_LENGTH_VALUE,
-                             MEASUREMENT_UNIT_MAX_LENGTH_VALUE)
+from utils.constants import (AMOUNT_MAX_VALUE, AMOUNT_MIN_VALUE,
+                             BASE_NAME_MAX_LENGTH, COOKING_MAX_VALUE,
+                             COOKING_MIN_VALUE, INGREDIENT_NAME_MAX_LENGTH,
+                             MEASUREMENT_UNIT_MAX_LENGTH_VALUE,
+                             RECIPE_NAME_MAX_LENGTH, SLUG_MAX_LENGTH_VALUE,
+                             TAG_NAME_MAX_LENGTH)
 
 User = get_user_model()
 
@@ -73,12 +73,15 @@ class Recipe(NamedModel):
                                on_delete=models.CASCADE,
                                verbose_name='Автор рецепта',)
     image = models.ImageField(upload_to='recipes/images/',
-                              verbose_name='Картинка рецепта')
+                              verbose_name='Картинка рецепта',
+                              null=False,
+                              blank=False)
     text = models.TextField(verbose_name='Текст рецепта')
     ingredients = models.ManyToManyField(Ingredient,
                                          through='RecipeIngredient',
                                          verbose_name='Ингедиенты рецепта')
-    tags = models.ManyToManyField(Tag, verbose_name='Теги рецепта')
+    tags = models.ManyToManyField(Tag, verbose_name='Теги рецепта',
+                                  blank=False)
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (мин.)',
         validators=(MinValueValidator(COOKING_MIN_VALUE,
@@ -134,7 +137,7 @@ class RecipeIngredient(models.Model):
                 f'{self.ingredient.measurement_unit}')
 
 
-class UserRecipeModel(models.Model):
+class UserRecipe(models.Model):
     """Abstract user recipe model."""
     user = models.ForeignKey(User,
                              related_name='%(class)s_set',
@@ -159,17 +162,17 @@ class UserRecipeModel(models.Model):
         return f'«{self.recipe}» в {self.__class__.__name__} у «{self.user}»'
 
 
-class Favorite(UserRecipeModel):
+class Favorite(UserRecipe):
     """User avorite recipes model."""
-    class Meta(UserRecipeModel.Meta):
+    class Meta(UserRecipe.Meta):
         """Meta class for model Favorite"""
         verbose_name = 'Избранные'
         verbose_name_plural = 'Избранные'
 
 
-class ShoppingCart(UserRecipeModel):
+class ShoppingCart(UserRecipe):
     """User ShoppingCart recipes model."""
-    class Meta(UserRecipeModel.Meta):
+    class Meta(UserRecipe.Meta):
         """Meta class for model ShoppingCart"""
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
