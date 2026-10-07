@@ -201,7 +201,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], url_path='download_shopping_cart')
+    @action(detail=False, methods=['get'], url_path='download_shopping_cart',
+            permission_classes=(IsAuthenticated,))
     def download_shoping_cart(self, request):
         """Aggregate all ingredients from the user's shopping cart and
         download as PDF.
@@ -210,16 +211,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
         groups them by name and measurement unit, calculates the sum
         of quantities, and generates a downloadable PDF file.
         """
-        # Aggregate ingredient totals for all recipes in the shopping cart
-        ingredients = (
-            RecipeIngredient.objects
-            .filter(recipe__shopping_carts__user=request.user)
-            .values('ingredients__name', 'ingredients__measurement_unit')
-            .annotate(total_amount=Sum('amount'))
-            .order_by('ingredients__name')
-        )
 
-        # Generate the PDF file buffer using the utility function
+        ingredients = [
+            {
+                'name': recipe_ingredient['ingredient__name'],
+                'unit': recipe_ingredient['ingredient__measurement_unit'],
+                'amount': recipe_ingredient['total_amount']
+            }
+            for recipe_ingredient in RecipeIngredient.objects
+            .filter(recipe__shoppingcart_by__user=request.user)
+            .values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('ingredient__name')
+        ]
+
         pdf_buffer = generate_shopping_cart_pdf(list(ingredients))
 
         # Return the file response as a downloadable attachment
