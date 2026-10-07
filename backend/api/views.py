@@ -152,10 +152,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Generate and present a shortened absolute web link for the recipe.
         """
-        if self.get_object():
-            return Response(
-                {'short-link': request.build_absolute_uri(f'/s/{pk}')},
-                status=status.HTTP_200_OK)
+        if not self.get_queryset().filter(pk=pk).exists():
+            raise NotFound('Рецепт не найден.')
+        return Response({'short-link': request.build_absolute_uri(f'/s/{pk}')},
+                        status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post', 'delete'], url_path='favorite',
             serializer_class=ShortRecipeSerializer)
@@ -233,3 +233,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             as_attachment=True,
             filename='shopping_cart.pdf',
         )
+
+
+def redirect_short_link(request, pk):
+    """A regular redirect page with a short link to the recipe frontend."""
+    recipe = get_object_or_404(Recipe, pk=pk)
+    return redirect(f'/recipes/{recipe.pk}')
