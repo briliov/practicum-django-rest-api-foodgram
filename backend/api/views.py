@@ -159,8 +159,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnly, ]
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-    ordering_fields = ['created_at', ]
-    ordering = ['-created_at']
+
+    def get_queryset(self):
+        """Receiving an annotated sample."""
+        queryset = super().get_queryset()
+        is_favorited = Value(False, output_field=BooleanField())
+        is_in_shopping_cart = Value(False, output_field=BooleanField())
+        if self.request.user.is_authenticated:
+            is_favorited = Exists(Favorite.objects.filter(
+                user=self.request.user, recipe=OuterRef('pk')))
+            is_in_shopping_cart = Exists(ShoppingCart.objects.filter(
+                user=self.request.user, recipe=OuterRef('pk')))
+        queryset = (queryset
+                    .annotate(is_favorited=is_favorited)
+                    .annotate(is_in_shopping_cart=is_in_shopping_cart))
+        author_queryset = User.objects.all()
+        is_subscribed = Value(False, output_field=BooleanField())
+        if self.request.user.is_authenticated:
+            is_subscribed = Exists(Following.objects.filter(
+                user=self.request.user, following=OuterRef('id')))
+        author_queryset = author_queryset.annotate(is_subscribed=is_subscribed)
+        queryset = queryset.prefetch_related(
+            Prefetch('author', queryset=author_queryset)
+        )
+        return queryset
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
