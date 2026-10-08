@@ -72,7 +72,7 @@ class UsersViewSet(UserViewSet):
         return self.get_queryset().get(pk=self.request.user.pk)
 
     def get_permissions(self):
-        if self.action == "me":
+        if self.action in ('me', 'post', 'update'):
             return (permissions.IsAuthenticated(),)
         return super().get_permissions()
 
