@@ -1,12 +1,12 @@
-"""Admin panel configuration for infrastructure API models."""
+"""Admin panel configuration for recipe application models."""
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 
-from .models import (Ingredient, Recipe, RecipeIngredient,
-                     Tag, ShoppingCart, Favorite)
+from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                     ShoppingCart, Tag)
 
 User = get_user_model()
 

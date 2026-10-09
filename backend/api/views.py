@@ -6,8 +6,8 @@ Cart).
 """
 
 from django.contrib.auth import get_user_model
-from django.db.models import (BooleanField, Count, Exists, OuterRef, Sum,
-                              Value, Prefetch, Subquery)
+from django.db.models import (BooleanField, Count, Exists, OuterRef, Prefetch,
+                              Subquery, Sum, Value)
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -28,8 +28,8 @@ from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (AvatarSerializer, IngredientsSerializer,
                           ReadRecipeSerializer, RecipeUserSubscribeSerializer,
-                          TagSerializer, UserSubscribeSerializer,
-                          WriteRecipeSerializer, ShortRecipeSerializer)
+                          ShortRecipeSerializer, TagSerializer,
+                          UserSubscribeSerializer, WriteRecipeSerializer)
 from .utils import generate_shopping_cart_pdf
 
 User = get_user_model()
@@ -39,6 +39,7 @@ class UsersViewSet(UserViewSet):
     """ViewSet for viewing, creating, and modifying User instances."""
     serializer_class = UserSubscribeSerializer
     pagination_class = LimitPageNumberPagination
+    permission_classes = IsAuthenticatedOrReadOnly
 
     def get_queryset(self):
         """Obtaining a sample with annotated and limited data."""
@@ -69,12 +70,19 @@ class UsersViewSet(UserViewSet):
         return queryset
 
     def get_instance(self):
+        """Getting a user through a request."""
         return self.get_queryset().get(pk=self.request.user.pk)
 
-    def get_permissions(self):
-        if self.action in ('me', 'post', 'update'):
-            return (permissions.IsAuthenticated(),)
-        return super().get_permissions()
+    # def get_permissions(self):
+    #     """
+    #     Возвращает список разрешений в зависимости от текущего действия (action).
+        
+    #     Для действий 'me', 'post' и 'update' требуется аутентификация.
+    #     Для остальных действий используются разрешения по умолчанию.
+    #     """
+    #     if self.action in ('me', 'post', 'update'):
+    #         return (permissions.IsAuthenticated(),)
+    #     return super().get_permissions()
 
     @action(detail=False, methods=('put',), url_path='me/avatar',
             permission_classes=[permissions.IsAuthenticated],

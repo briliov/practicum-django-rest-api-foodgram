@@ -1,16 +1,21 @@
+"""Custom django command for loadding ingredients data."""
 
 import logging
+
 import pandas
 from django.core.management.base import BaseCommand
+
 from entities.recipes.models import Ingredient
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Manage project recipe data (save or load)'
+    """Helping command for load ingredients data."""
+    help = 'Loads ingredients data'
 
     def handle(self, *args, **options):
+        """Handler for Ingredients load command."""
         ingredients_data = pandas.read_json('data/ingredients.json'
                                             ).to_dict(orient='records')
         count_before = Ingredient.objects.count()
