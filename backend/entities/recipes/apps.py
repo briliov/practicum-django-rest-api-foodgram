@@ -5,5 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 class RecipesConfig(AppConfig):
     """Configuration class for the recipes application package."""
+
     name = 'entities.recipes'
     verbose_name = _('Рецепты')

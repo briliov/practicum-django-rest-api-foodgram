@@ -1,9 +1,0 @@
-# Настройки для Pylance (Pyright)
-[tool.pyright]
-diagnosticSeverityOverrides = { reportGeneralTypeIssues = "none" }
-
-# Настройки для Flake8
-[tool.flake8]
-per-file-ignores = [
-    "apps/recipes/serializers.py:F841,E501"
-]

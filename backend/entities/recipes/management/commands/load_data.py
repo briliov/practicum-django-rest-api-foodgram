@@ -4,7 +4,6 @@ import logging
 
 import pandas
 from django.core.management.base import BaseCommand
-
 from entities.recipes.models import Ingredient
 
 logger = logging.getLogger(__name__)
@@ -12,11 +11,12 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     """Helping command for load ingredients data."""
+
     help = 'Loads ingredients data'
 
     def handle(self, *args, **options):
-        """Handler for Ingredients load command."""
-        ingredients_data = pandas.read_json('data/ingredients.json'
+        """Handle ingredients loading."""
+        ingredients_data = pandas.read_json('data/ingredients.json',
                                             ).to_dict(orient='records')
         count_before = Ingredient.objects.count()
         ingredients_instances = [Ingredient(**ingredient_data)  # type: ignore

@@ -6,30 +6,52 @@ Cart).
 """
 
 from django.contrib.auth import get_user_model
-from django.db.models import (BooleanField, Count, Exists, OuterRef, Prefetch,
-                              Subquery, Sum, Value)
+from django.db.models import (
+    BooleanField,
+    Count,
+    Exists,
+    OuterRef,
+    Prefetch,
+    Subquery,
+    Sum,
+    Value,
+)
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from entities.recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
+from entities.users.models import Following
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
-
-from entities.recipes.models import (Favorite, Ingredient, Recipe,
-                                     RecipeIngredient, ShoppingCart, Tag)
-from entities.users.models import Following
 
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (AvatarSerializer, IngredientsSerializer,
-                          ReadRecipeSerializer, RecipeUserSubscribeSerializer,
-                          ShortRecipeSerializer, TagSerializer,
-                          UserSubscribeSerializer, WriteRecipeSerializer)
+from .serializers import (
+    AvatarSerializer,
+    IngredientsSerializer,
+    ReadRecipeSerializer,
+    RecipeUserSubscribeSerializer,
+    ShortRecipeSerializer,
+    TagSerializer,
+    UserSubscribeSerializer,
+    WriteRecipeSerializer,
+)
 from .utils import generate_shopping_cart_pdf
 
 User = get_user_model()
@@ -37,46 +59,55 @@ User = get_user_model()
 
 class UsersViewSet(UserViewSet):
     """ViewSet for viewing, creating, and modifying User instances."""
+
     serializer_class = UserSubscribeSerializer
     pagination_class = LimitPageNumberPagination
     permission_classes = IsAuthenticatedOrReadOnly
 
     def get_queryset(self):
-        """Obtaining a sample with annotated and limited data."""
+        """Obtain a sample with annotated and limited data."""
         queryset = super().get_queryset()
 
         is_subscribed = Value(False, output_field=BooleanField())
         if self.request.user.is_authenticated:
-            is_subscribed = Exists(Following.objects.filter(
-                user=self.request.user, following=OuterRef('id')))
+            is_subscribed = Exists(
+                Following.objects.filter(
+                    user=self.request.user,
+                    following=OuterRef("id"),
+                ),
+            )
         queryset = queryset.annotate(is_subscribed=is_subscribed)
 
-        if self.action in ('subscribe', 'subscriptions'):
-            queryset = queryset.annotate(recipes_count=Count('recipes'))
+        if self.action in ("subscribe", "subscriptions"):
+            queryset = queryset.annotate(recipes_count=Count("recipes"))
 
-            recipes_limit = self.request.query_params.get('recipes_limit')
+            recipes_limit = self.request.query_params.get("recipes_limit")
             if recipes_limit and recipes_limit.isdigit():
                 recipes_subquery = Recipe.objects.filter(
-                    author_id=OuterRef('id')
-                ).values('id')[:int(recipes_limit)]
+                    author_id=OuterRef("id"),
+                ).values("id")[: int(recipes_limit)]
                 queryset = queryset.prefetch_related(
-                    Prefetch('recipes',
-                             queryset=Recipe.objects.filter(
-                                 id__in=Subquery(recipes_subquery)))
+                    Prefetch(
+                        "recipes",
+                        queryset=Recipe.objects.filter(
+                            id__in=Subquery(recipes_subquery),
+                        ),
+                    ),
                 )
             else:
-                queryset = queryset.prefetch_related('recipes')
+                queryset = queryset.prefetch_related("recipes")
 
         return queryset
 
     def get_instance(self):
-        """Getting a user through a request."""
+        """Return a user through a request."""
         return self.get_queryset().get(pk=self.request.user.pk)
 
     # def get_permissions(self):
     #     """
-    #     Возвращает список разрешений в зависимости от текущего действия (action).
-        
+    #     Возвращает список разрешений в зависимости от текущего действия
+    #     (action).
+
     #     Для действий 'me', 'post' и 'update' требуется аутентификация.
     #     Для остальных действий используются разрешения по умолчанию.
     #     """
@@ -84,55 +115,73 @@ class UsersViewSet(UserViewSet):
     #         return (permissions.IsAuthenticated(),)
     #     return super().get_permissions()
 
-    @action(detail=False, methods=('put',), url_path='me/avatar',
-            permission_classes=[permissions.IsAuthenticated],
-            serializer_class=AvatarSerializer)
+    @action(
+        detail=False,
+        methods=("put",),
+        url_path="me/avatar",
+        permission_classes=[permissions.IsAuthenticated],
+        serializer_class=AvatarSerializer,
+    )
     def change_user_image(self, request):
-        """Update or completely remove the authenticated user's avatar
-        image."""
+        """Update or remove the authenticated user's avatar image."""
         serializer = self.get_serializer(request.user, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @change_user_image.mapping.delete
+    @change_user_image.mapping.delete  # type: ignore
     def delete_user_image(self, request):
         """Remove the authenticated user's avatar."""
         request.user.avatar.delete(save=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=('post',), url_path='subscribe',
-            permission_classes=(permissions.IsAuthenticated,),
-            serializer_class=RecipeUserSubscribeSerializer)
+    @action(
+        detail=True,
+        methods=("post",),
+        url_path="subscribe",
+        permission_classes=(permissions.IsAuthenticated,),
+        serializer_class=RecipeUserSubscribeSerializer,
+    )
     def subscribe(self, request, id=None):
         """Follow an author identified by their primary key (pk)."""
         following = get_object_or_404(self.get_queryset(), id=id)
         if request.user == following:
             raise ValidationError(
-                {'errors': 'Вы не можете подписаться на самого себя.'})
-        if Following.objects.filter(user=self.request.user,
-                                    following=following).exists():
+                {"errors": "Вы не можете подписаться на самого себя."},
+            )
+        if Following.objects.filter(
+            user=self.request.user,
+            following=following,
+        ).exists():
             raise ValidationError(
-                {'error': 'Вы не можете подписаться дважды.'})
-        Following.objects.create(user=self.request.user,
-                                 following=following)
-        return Response(self.get_serializer(following).data,
-                        status=status.HTTP_201_CREATED)
+                {"error": "Вы не можете подписаться дважды."},
+            )
+        Following.objects.create(user=self.request.user, following=following)
+        return Response(
+            self.get_serializer(following).data,
+            status=status.HTTP_201_CREATED,
+        )
 
-    @subscribe.mapping.delete
+    @subscribe.mapping.delete  # type: ignore
     def unsubscribe(self, request, id=None, *args, **kwargs):
         """Unfollow an author identified by their primary key (pk)."""
         if not User.objects.filter(id=id).exists():
-            raise NotFound('Пользователь не найден.')
-        deleted, _ = Following.objects.filter(user=request.user,
-                                              following_id=id).delete()
+            raise NotFound("Пользователь не найден.")
+        deleted, _ = Following.objects.filter(
+            user=request.user,
+            following_id=id,
+        ).delete()
         if not deleted:
-            raise ValidationError('Вы не были подписаны на этого пользователя')
+            raise ValidationError("Вы не были подписаны на этого пользователя")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=('get',), url_path='subscriptions',
-            permission_classes=(permissions.IsAuthenticated,),
-            serializer_class=RecipeUserSubscribeSerializer,)
+    @action(
+        detail=False,
+        methods=("get",),
+        url_path="subscriptions",
+        permission_classes=(permissions.IsAuthenticated,),
+        serializer_class=RecipeUserSubscribeSerializer,
+    )
     def subscriptions(self, request, *args, **kwargs):
         """Return a paginated list of authors followed by the active user."""
         return self.list(request, *args, **kwargs)
@@ -164,16 +213,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     pagination_class = LimitPageNumberPagination
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
-    filter_backends = [DjangoFilterBackend, ]
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     serializer_class = ReadRecipeSerializer
 
-    def get_serializer_class(self):
-        if self.action in ('create', 'update', 'partial_update'):
+    def get_serializer_class(self):  # type: ignore
+        """Return the serializer class based on the current action."""
+        if self.action in ("create", "update", "partial_update"):
             return WriteRecipeSerializer
         return super().get_serializer_class()
 
     def perform_create(self, serializer):
+        """Save the object with the current user as the author."""
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
@@ -182,100 +233,127 @@ class RecipeViewSet(viewsets.ModelViewSet):
         is_favorited = Value(False, output_field=BooleanField())
         is_in_shopping_cart = Value(False, output_field=BooleanField())
         if self.request.user.is_authenticated:
-            is_favorited = Exists(Favorite.objects.filter(
-                user=self.request.user, recipe=OuterRef('pk')))
-            is_in_shopping_cart = Exists(ShoppingCart.objects.filter(
-                user=self.request.user, recipe=OuterRef('pk')))
-        queryset = (queryset
-                    .annotate(is_favorited=is_favorited)
-                    .annotate(is_in_shopping_cart=is_in_shopping_cart))
+            is_favorited = Exists(
+                Favorite.objects.filter(
+                    user=self.request.user,
+                    recipe=OuterRef("pk"),
+                ),
+            )
+            is_in_shopping_cart = Exists(
+                ShoppingCart.objects.filter(
+                    user=self.request.user,
+                    recipe=OuterRef("pk"),
+                ),
+            )
+        queryset = queryset.annotate(is_favorited=is_favorited).annotate(
+            is_in_shopping_cart=is_in_shopping_cart,
+        )
         author_queryset = User.objects.all()
         is_subscribed = Value(False, output_field=BooleanField())
         if self.request.user.is_authenticated:
-            is_subscribed = Exists(Following.objects.filter(
-                user=self.request.user, following=OuterRef('id')))
+            is_subscribed = Exists(
+                Following.objects.filter(
+                    user=self.request.user,
+                    following=OuterRef("id"),
+                ),
+            )
         author_queryset = author_queryset.annotate(is_subscribed=is_subscribed)
         queryset = queryset.prefetch_related(
-            Prefetch('author', queryset=author_queryset)
+            Prefetch("author", queryset=author_queryset),
         )
         return queryset
 
-    @action(detail=True, methods=['get'], url_path='get-link')
+    @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
-        """
-        Generate and present a shortened absolute web link for the recipe.
-        """
+        """Generate a shortened absolute web link for the recipe."""
         if not self.get_queryset().filter(pk=pk).exists():
-            raise NotFound('Рецепт не найден.')
-        return Response({'short-link': request.build_absolute_uri(f'/s/{pk}')},
-                        status=status.HTTP_200_OK)
+            raise NotFound("Рецепт не найден.")
+        return Response(
+            {"short-link": request.build_absolute_uri(f"/s/{pk}")},
+            status=status.HTTP_200_OK,
+        )
 
     def _add_to_relation(self, request, model):
         """Link the recipe to the current user."""
         recipe = self.get_object()
-        _, created = model.objects.get_or_create(user=request.user,
-                                                 recipe=recipe)
+        _, created = model.objects.get_or_create(
+            user=request.user,
+            recipe=recipe,
+        )
         if not created:
-            return Response({'errors': 'Этот рецепт уже добавлен.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        serializer = ShortRecipeSerializer(recipe,
-                                           context={'request': request})
+            return Response(
+                {"errors": "Этот рецепт уже добавлен."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = ShortRecipeSerializer(
+            recipe,
+            context={"request": request},
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def _remove_from_relation(self, request, model):
         """Unlink the recipe from the current user."""
-        deleted_count, _ = model.objects.filter(user=request.user,
-                                                recipe=self.get_object()
-                                                ).delete()
+        deleted_count, _ = model.objects.filter(
+            user=request.user,
+            recipe=self.get_object(),
+        ).delete()
         if not deleted_count:
-            return Response({'errors': 'Рецепт не был добавлен.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"errors": "Рецепт не был добавлен."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post'], url_path='favorite',
-            permission_classes=[IsAuthenticated])
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="favorite",
+        permission_classes=[IsAuthenticated],
+    )
     def favorite(self, request, pk=None):
         """Add the recipe to favorites."""
         return self._add_to_relation(request, Favorite)
 
-    @favorite.mapping.delete
+    @favorite.mapping.delete  # type: ignore
     def delete_favorite(self, request, pk=None):
         """Remove the recipe from favorites."""
         return self._remove_from_relation(request, Favorite)
 
-    @action(detail=True, methods=['post'], url_path='shopping_cart',
-            permission_classes=[IsAuthenticated])
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="shopping_cart",
+        permission_classes=[IsAuthenticated],
+    )
     def shopping_cart(self, request, pk=None):
         """Add the recipe to the shopping cart."""
         return self._add_to_relation(request, ShoppingCart)
 
-    @shopping_cart.mapping.delete
+    @shopping_cart.mapping.delete  # type: ignore
     def delete_shopping_cart(self, request, pk=None):
         """Remove the recipe from the shopping cart."""
         return self._remove_from_relation(request, ShoppingCart)
 
-    @action(detail=False, methods=['get'], url_path='download_shopping_cart',
-            permission_classes=(IsAuthenticated,))
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="download_shopping_cart",
+        permission_classes=(IsAuthenticated,),
+    )
     def download_shoping_cart(self, request):
-        """Aggregate all ingredients from the user's shopping cart and
-        download as PDF.
-
-        Queries all ingredients across recipes inside the shopping cart,
-        groups them by name and measurement unit, calculates the sum
-        of quantities, and generates a downloadable PDF file.
-        """
-
+        """Aggregate shopping cart ingredients and download as PDF."""
         ingredients = [
             {
-                'name': recipe_ingredient['ingredient__name'],
-                'unit': recipe_ingredient['ingredient__measurement_unit'],
-                'amount': recipe_ingredient['total_amount']
+                "name": recipe_ingredient["ingredient__name"],
+                "unit": recipe_ingredient["ingredient__measurement_unit"],
+                "amount": recipe_ingredient["total_amount"],
             }
-            for recipe_ingredient in RecipeIngredient.objects
-            .filter(recipe__shoppingcart_by__user=request.user)
-            .values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(total_amount=Sum('amount'))
-            .order_by('ingredient__name')
+            for recipe_ingredient in RecipeIngredient.objects.filter(
+                recipe__shoppingcart_by__user=request.user,
+            )
+            .values("ingredient__name", "ingredient__measurement_unit")
+            .annotate(total_amount=Sum("amount"))
+            .order_by("ingredient__name")
         ]
 
         pdf_buffer = generate_shopping_cart_pdf(ingredients)
@@ -283,11 +361,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return FileResponse(
             pdf_buffer,
             as_attachment=True,
-            filename='shopping_cart.pdf',
+            filename="shopping_cart.pdf",
         )
 
 
 def redirect_short_link(request, pk):
-    """A regular redirect page with a short link to the recipe frontend."""
+    """Redirect page with a short link to the recipe frontend."""
     recipe = get_object_or_404(Recipe, pk=pk)
-    return redirect(f'/recipes/{recipe.pk}')
+    return redirect(f"/recipes/{recipe.pk}")
