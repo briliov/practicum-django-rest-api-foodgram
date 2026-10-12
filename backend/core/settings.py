@@ -1,16 +1,16 @@
 """Settings for backend foodgram project."""
 
-import os
 from pathlib import Path
 
 from decouple import Csv, config
+from utils.constants import PAGE_SIZE
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY',
                     default='django-insecure-test-key-placeholder-12345')
 
-DEBUG = config('DEBUG_STATUS', default=True, cast=bool)
+DEBUG = config('DEBUG_STATUS', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS',
                        default='localhost,127.0.0.1',
@@ -32,9 +32,11 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'api.apps.ApiConfig',
+    'entities.users.apps.UsersConfig',
+    'entities.recipes.apps.RecipesConfig',
 ]
 
-AUTH_USER_MODEL = 'api.CustomUser'
+AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -115,28 +117,28 @@ USE_I18N = True
 
 USE_TZ = True
 
+STATIC_SOURCE = 'backend/static/'
+STATIC_URL = STATIC_SOURCE
+STATIC_ROOT = BASE_DIR / STATIC_SOURCE
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_SOURCE = 'backend/media/'
+MEDIA_URL = MEDIA_SOURCE
+MEDIA_ROOT = BASE_DIR / MEDIA_SOURCE
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DJOSER = {
-    'LOGIN_FIELD': 'email',
-}
-
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
+
     'PAGE_SIZE_QUERY_PARAM': 'limit',
-    'PAGE_SIZE': 6,
+    'PAGE_SIZE': PAGE_SIZE,
 
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 
@@ -144,6 +146,19 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
 }
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSubscribeSerializer',
+        'current_user': 'api.serializers.UserSubscribeSerializer',
+    },
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
+    },
+}
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -174,3 +189,9 @@ GLOBAL_FIXTURES_DIR = BASE_DIR / 'fixtures'
 FIXTURE_DIRS = [
     GLOBAL_FIXTURES_DIR,
 ]
+
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS',
+                              default='http://localhost,http://127.0.0.1',
+                              cast=Csv())
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

@@ -1,0 +1,1 @@
+"""Recipes entity package initialization."""
