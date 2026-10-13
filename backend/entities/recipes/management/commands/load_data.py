@@ -1,7 +1,6 @@
 """Custom django command for loadding ingredients data."""
 
 import logging
-
 import pandas
 from django.core.management.base import BaseCommand
 from entities.recipes.models import Ingredient
