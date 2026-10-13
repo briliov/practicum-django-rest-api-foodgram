@@ -1,6 +1,7 @@
 """Custom pagination model for application API."""
 
 from rest_framework.pagination import PageNumberPagination
+
 from utils.constants import PAGE_SIZE
 
 

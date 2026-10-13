@@ -3,6 +3,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from utils.constants import (
     AMOUNT_MAX_VALUE,
     AMOUNT_MIN_VALUE,
