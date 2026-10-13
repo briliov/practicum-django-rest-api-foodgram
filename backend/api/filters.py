@@ -3,6 +3,7 @@
 import django_filters
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import filters
+
 from entities.recipes.models import Ingredient, Recipe, Tag
 
 User = get_user_model()

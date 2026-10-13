@@ -5,8 +5,9 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.db.models import Count
 from django.utils.safestring import mark_safe
-from entities.recipes.admin import RecipeCountMixin
 from rest_framework.authtoken.models import TokenProxy as Token
+
+from entities.recipes.admin import RecipeCountMixin
 
 from .models import Following, User
 

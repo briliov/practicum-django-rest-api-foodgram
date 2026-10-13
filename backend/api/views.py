@@ -29,6 +29,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+
 from entities.recipes.models import (
     Favorite,
     Ingredient,

@@ -1,7 +1,9 @@
 """Settings for backend foodgram project."""
 
 from pathlib import Path
+
 from decouple import Csv, config
+
 from utils.constants import PAGE_SIZE
 
 BASE_DIR = Path(__file__).resolve().parent.parent
