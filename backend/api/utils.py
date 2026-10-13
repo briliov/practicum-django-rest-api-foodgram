@@ -1,14 +1,13 @@
 """Utils for API Foodgram."""
 
 import io
-
-from core.settings import BASE_DIR
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+from core.settings import BASE_DIR
 
 FONT_PATH = BASE_DIR / "api" / "data" / "fonts" / "DejaVuSans.ttf"
 pdfmetrics.registerFont(TTFont("DejaVuSans", FONT_PATH))

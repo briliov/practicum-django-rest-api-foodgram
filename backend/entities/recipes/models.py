@@ -122,7 +122,7 @@ class Recipe(NamedModel):
             MinValueValidator(
                 COOKING_MIN_VALUE,
                 message=(
-                    "Время приготовления не может быть меньще одной минуты"
+                    "Время приготовления не может быть меньше одной минуты"
                 ),
             ),
             MaxValueValidator(

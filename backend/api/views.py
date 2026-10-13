@@ -20,15 +20,6 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from entities.recipes.models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    ShoppingCart,
-    Tag,
-)
-from entities.users.models import Following
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
@@ -38,6 +29,15 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+from entities.recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
+from entities.users.models import Following
 
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import LimitPageNumberPagination
