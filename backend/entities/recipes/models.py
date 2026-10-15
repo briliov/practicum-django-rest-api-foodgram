@@ -56,12 +56,12 @@ class Ingredient(NamedModel):
 
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=["name", "measurement_unit"],
                 name="unique_ingredient_name_measurement_unit",
             ),
-        ]
+        )
 
     def __str__(self):
         """Return string explanation for model."""
@@ -178,12 +178,12 @@ class RecipeIngredient(models.Model):
 
         verbose_name = "Связь рецепта и ингердиента"
         verbose_name_plural = "Связь рецепта и ингердиента"
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=("recipe", "ingredient"),
                 name="unique_recipe_ingredient",
             ),
-        ]
+        )
         default_related_name = "recipe_ingredients"
         ordering = ("recipe__name",)
 
