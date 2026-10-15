@@ -1,6 +1,5 @@
 """Models for users application."""
 
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
@@ -9,18 +8,27 @@ from django.db.models import F, Q
 class User(AbstractUser):
     """Custom user model."""
 
-    email = models.EmailField(unique=True,
-                              verbose_name="Пользовательская почта")
+    email = models.EmailField(
+        unique=True,
+        verbose_name="Пользовательская почта",
+    )
     avatar = models.ImageField(
-        upload_to="users/", blank=True,
+        upload_to="users/",
+        blank=True,
         verbose_name="Пользовательская аватарка",
     )
-    first_name = models.CharField(max_length=150, blank=False,
-                                  verbose_name="Имя")
-    last_name = models.CharField(max_length=150, blank=False,
-                                 verbose_name="Фамилия")
+    first_name = models.CharField(
+        max_length=150,
+        blank=False,
+        verbose_name="Имя",
+    )
+    last_name = models.CharField(
+        max_length=150,
+        blank=False,
+        verbose_name="Фамилия",
+    )
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
+    REQUIRED_FIELDS = ("username", "first_name", "last_name")
 
     class Meta:
         """Meta class for model User."""
@@ -58,7 +66,8 @@ class Following(models.Model):
         verbose_name_plural = "Подписки"
         constraints = (
             models.UniqueConstraint(
-                fields=["user", "following"], name="unique_user_following",
+                fields=["user", "following"],
+                name="unique_user_following",
             ),
             models.CheckConstraint(
                 condition=~Q(user=F("following")),

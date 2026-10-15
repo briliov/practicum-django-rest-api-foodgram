@@ -5,8 +5,14 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 
-from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                     ShoppingCart, Tag)
+from .models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 
 User = get_user_model()
 
