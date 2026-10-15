@@ -1,7 +1,5 @@
 # Foodgram
 
-[nexordon.work.gd](https://nexordon.work.gd/) | [IP](ttps://51.250.47.108/)
-
 ![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![Django](https://img.shields.io/badge/django-black.svg?style=for-the-badge&logo=django&logoColor=3CB371)
 ![DRF](https://img.shields.io/badge/DRF-black?style=for-the-badge&logo=django&logoColor=red)
@@ -20,11 +18,25 @@
 ![PowerShell](https://img.shields.io/badge/PowerShell-black.svg?style=for-the-badge&logo=gnometerminal&logoColor=1E90FF)
 ![Git](https://img.shields.io/badge/git-black.svg?style=for-the-badge&logo=git&logoColor=orange)
 
----
+## About
+
+Grocery Assistant: a service for publishing recipes, adding them to favorites, subscribing to authors and generating a consolidated shopping list with the ability to download to PDF.
+
+### Project links
+
+* **Project site:** [nexordon.work.gd](https://nexordon.work.gd/)
+* **Server IP address:** [51.250.47](https://51.250.47)
+* **Admin panel:** [nexordon.work.gd/admin/](https://nexordon.work.gd/)
+* **API Documentation (Redoc):** [nexordon.work.gd/api/docs/](https://work.gd)
+
+### Author of the project
+
+* **Egor Briliov** | Backend Developer
+* **Telegram** | [@briliov](https://t.me/briliov)
 
 ## Tech Stack & Infrastructure
 
-* **Backend:** Python 3.12, Django 3.2, Django REST Framework (DRF), Djoser.
+* **Backend:** Python 3.12, Django 6.1, Django REST Framework (DRF), Djoser.
 * **Database:** PostgreSQL 15 (Production) / SQLite (Local Development).
 * **Frontend:** React (SPA application; the container is used for static building).
 * **WSGI & Web Server:** Gunicorn, Nginx.
@@ -34,115 +46,81 @@
 
 The application is deployed on a virtual private server inside **four isolated containers**: `nginx`, `db` (PostgreSQL), `backend`, and `frontend`. Persistent data stores, media, and static assets are managed using Docker Volumes.
 
----
+## How to install & Deploy
 
-## Backend & API Implementation Features
+### Local Development Setup
 
-The REST API architecture strictly follows the provided requirements specification using the following solutions on the controllers and serializers level:
+1. **Clone the repository:**
 
-* **User Management & Profiles (`UsersViewSet`):**
-  * Inherits standard mixins for creating, listing, retrieving, updating, and the `GenericViewSet` class. It dynamically switches to `UsersCreateSerializer` when executing the `create` action.
-  * The `me` action returns the authenticated user profile (`current_user`).
-  * The `me/avatar` action handles `PUT` and `DELETE` requests. Upon receiving a `DELETE` request, the avatar asset file is completely purged from media storage via `avatar.delete(save=True)`.
-  * The `set_password` action secures password modifications utilizing `check_password` and `set_password` logic.
-* **Subscriptions, Favorites, and Shopping Carts:**
-  * Author subscriptions (`subscribe`) and viewing user subscriptions (`subscriptions`) are encapsulated inside `UsersViewSet`. The `subscriptions` method returns a paginated list of followed authors.
-  * The `favorite` and `shopping_cart` actions in `RecipeViewSet` handle `POST` requests (adding via `get_or_create`) and `DELETE` requests (removing records). Unique constraints are enforced at the DB level to block duplicate records.
-* **Short Link Generation:**
-  * Implemented a `get-link` endpoint inside `RecipeViewSet`. It generates and returns shortened absolute web links matching the structure `https://<domain>/s/{id}/` using `request.build_absolute_uri()`.
-* **Aggregating Shopping List Data to PDF:**
-  * The `download_shopping_cart` endpoint groups and aggregates ingredient counts across all recipes currently pinned in the user's shopping cart. Matching ingredients are combined at the database level using `values()`, `annotate(total_amount=Sum('amount'))`, and `order_by()`.
-  * The aggregated array is handled by a `generate_shopping_cart_pdf` helper tool, providing a downloaded **PDF document** stream via `FileResponse` configured with the `as_attachment=True` flag.
-* **Filtering and Pagination:**
-  * For recipes (`RecipeViewSet`), default ordering is set to sort by publication date newest-first (`ordering = ['-created_at']`). Integrated custom `RecipeFilter` logic and a custom page-based paginator `LimitPageNumberPagination`.
-  * Ingredients (`IngredientsViewSet`) and tags (`TagsViewSet`) operate in read-only mode (`ReadOnlyModelViewSet`) without pagination. Ingredients feature case-insensitive search targeted at string starters (`search_fields = ('^name',)`).
+```bash
+bash
+git clone https://github.com
+cd foodgram
+```
 
----
+1. **Configure environment variables:**
 
-## Database Architecture (Project Models)
+Create a `.env` file in the root directory (where your development `docker-compose.yml` file is located):
 
-The business logic relies on the following structural data layer models:
+```env
+env
+SECRET_KEY=your_secure_django_secret_key
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+```
 
-* **`CustomUser`:** Extends `AbstractUser`. Authentication transitions from username over to a unique `email` field. Contains an `avatar` field for profile rendering.
-* **`Recipe`:** Connects an author (`CustomUser`), name, banner image, descriptive text body, cooking time in minutes, and a creation date. Linked with tags and ingredients using `ManyToManyField` relations.
-* **`Ingredient`:** Inherits abstract characteristics from `NamedModel`. Enforces a composite unique index binding the ingredient name and its measurement system (`measurement_unit`).
-* **`Tag`:** Inherits characteristics from `NamedModel`. Enforces a unique display name and a unique string identifier (`slug`).
-* **`RecipeIngredient` (Through Model):** Connects recipes and ingredients specifying precise quantities (`amount`). Configured with a unique constraint checking matching `recipe` and `ingredients` keys.
-* **`Following`:** Manages links binding subscribers (`user`) with creators (`following`). Protected against double-following entries using unique structural indexes.
-* **`Favorite`:** Tracks relations connecting individual user accounts to favorited recipe records.
-* **`ShoppingCart`:** Connects user profiles to pinned recipes whose components must be exported to the raw shopping sheet.
+1. **Launch the local infrastructure using Docker:**
 
----
+Build and start the multi-container development environment:
 
-## Django Administration Panel Setup
+```bash
+docker compose up -d --build
+```
 
-The custom control dashboard has been tailored for application moderators. Shared header variables are updated (`admin.site.site_header = 'Foodgram Management Panel'`, `admin.site.index_title`, etc.), while `Following`, `Tag`, `Favorite`, and `ShoppingCart` use native configuration templates.
+***Note**: In development mode (`target: development`), the backend container automatically performs database migrations (`makemigrations && migrate`), loads core system fixtures (`load_data`), and runs `collectstatic` before starting the built-in development server.*
 
-Key specialized `ModelAdmin` parameters are customized:
+1. **Verify execution:**
 
-* **Custom Users (`CustomUserAdmin`):**
-  * Display list columns (`list_display`): `id`, `username`, `email`.
-  * Target lookup query strings (`search_fields`): `username`, `email`.
-* **Recipes (`RecipeAdmin`):**
-  * The main summary list view (`list_display`) columns present recipe name strings (`name`) and author accounts through a dedicated helper method `get_author_name` (with a default fallback rendering `"No Author"`).
-  * Filter criteria options (`list_filter`): Fast filtering matching tag filters (`tags`).
-  * Target lookup fields (`search_fields`): Lookup queries matching recipe titles (`name`) and user author names (`author__username`).
-  * The detailed record page houses the aggregate counter checking how many times a recipe was added to user favorites (`get_favorite_add_count`) within `readonly_fields`. Computations are processed on the fly using ORM `.count()`.
-* **Ingredients (`IngredientAdmin`):**
-  * Summary overview table (`list_display`) maps measurement metrics (`measurement_unit`) and text strings formatted by `get_capitalized_name` (forcing leading characters into uppercase format).
-  * Target lookup fields (`search_fields`): Filters records matching specific item names (`name`).
+The application will be accessible via standard interfaces through the Nginx gateway on port `:80`. You can monitor log execution streams using:
+
+```bash
+docker compose logs -f backend
+```
 
 ---
 
-## Production Architecture & Nginx Configuration
+### CI/CD Workflow & Production Deployment
 
-In the production stage, the platform is orchestrated over a virtual node server running Ubuntu via containers configured in `docker-compose.production.yml`. App builds are managed at the CI/CD deployment level, saving packages out to Docker Hub before distribution pulls. The relational database container utilizes a custom `healthcheck` layer blocking adjacent startup steps until PostgreSQL completely processes initial port assignments.
+The project features fully automated staging and deployment layers controlled by **GitHub Actions** via distinct workflow routines.
 
-**T he Nginx configuration (`nginx.conf`) runs under the following structure:**
+#### 1. Automation Architecture & Required Secrets
 
-* Network traffic hits matching `/api/` or `/admin/` entries are automatically forwarded to the WSGI application container layer to `Gunicorn` handling assignments on port `8000`.
-* Configured assets paths serving core Django administrative files (`/static/admin/`), interface stylesheets (`/static/rest_framework/`), and API docs endpoints (`/api/docs/`).
-* Handles user-uploaded assets from isolated directories matching `/var/www/django/media/`.
-* The fallback matching location `/` serves the static compiled assets matching the production-ready React client build located inside `/usr/share/nginx/html/build`.
+To enable automated validations and delivery, make sure to provision the following environmental variables within your GitHub Repository settings (`Settings -> Secrets and variables -> Actions`):
 
----
+* `DOCKER_USERNAME` / `DOCKER_PASSWORD` — Shared keys needed to publish images to DockerHub.
+* `HOST` / `USER` / `SSH_KEY` — Remote Linux parameters targeted by deployment workflows.
+* `TELEGRAM_TO` / `TELEGRAM_TOKEN` — Credentials required to deliver operational push alerts.
 
-## CI/CD Workflow Automation
+#### 2. Workflow Lifecycles
 
-The pipeline layers feature two independent workflows controlled via **GitHub Actions**:
+* **Development Workflow (`dev.yml`):** Automatically triggers on any push to the `dev` branch. It hosts an isolated `postgres:13.10` runner to perform code evaluation assertions (`ruff check`) and execute tests (`python manage.py test`).
 
-###  Development Workflow (`.github/workflows/dev.yml`)
+* **Main Deployment Workflow (`main.yml`):** Automatically runs on any push to the `main` branch. It manages the following sequence:
+  1. Runs code quality assertions and tests.
+  2. Compiles production assets and pushes verified Docker images (`backend` and `frontend`) directly to your DockerHub space (`nexordon/foodgram_backend:latest`, `nexordon/foodgram_frontend:latest`).
+  3. Copies the production compose definitions (`infra/docker-compose.production.yml`) and web server setup configs (`infra/nginx.conf`) to the remote hosting environment over SSH.
+  4. Automatically handles deployment updates on the remote server:
 
-* Triggers when changes hit development repositories on push events targeted at the `dev` branch.
-* Spins up a standalone test backend runner working alongside PostgreSQL 13.10.
-* Completes package assembly installs, triggers syntax validation scanning using the `flake8` package checking PEP 8 styling code guidelines, and runs Django native test suites.
-* Transmits complete log updates and status diagnostics out to developer **Telegram** chats upon completing stages.
+     ```bash
+     sudo docker compose -f docker-compose.production.yml pull
+     sudo docker compose -f docker-compose.production.yml down
+     sudo docker compose -f docker-compose.production.yml up -d
+     sudo docker container exec foodgram-backend python manage.py migrate
+     sudo docker container exec foodgram-backend python manage.py collectstatic --no-input
+     ```
 
-### Main Production Workflow (`.github/workflows/main.yml`)
-
-* Triggers on merging features back into the primary release branch (`main`).
-* Re-executes lint checking and integrated software test logic.
-* Triggers multi-stage building (`matrix.type`) for Docker environment layers, updating registry repositories with `latest` image tags on Docker Hub.
-* Imports layout updates (`docker-compose.production.yml` and `nginx.conf`) onto the target private node via SCP secure protocols (`scp-action`).
-* Triggers SSH commands handling remote container environment restarts (`docker compose pull`, `docker compose down`, `docker compose up -d`), launches missing model transformations (migrations), and updates system asset catalogs via volume bindings.
-* Sends final success statements to the Telegram monitoring room.
-
----
-
-##  Access Control Matrix (ACL)
-
-| Capabilities / Roles | Guest (Anonymous) | Authenticated User | Administrator |
-| :--- | :---: | :---: | :---: |
-| Browse recipes, tags, and profiles | ✅ | ✅ | ✅ |
-| Create, edit, and delete *own* recipes | ❌ | ✅ | ✅ |
-| Manage Subscriptions, Favorites, and Shopping Carts | ❌ | ✅ | ✅ |
-| Password changes / Account logout logout | ❌ | ✅ | ✅ |
-| Global user accounts moderation and bans | ❌ | ❌ | ✅ |
-| Moderate third-party posts, configure tags/ingredients | ❌ | ❌ | ✅ |
-
----
-
-## How to install
+     *In the production environment, the backend server operates securely via a managed **Gunicorn WSGI server** binding on internal port `:8000`, while the custom **Nginx templates** route traffic and serve static files.*
+  5. Dispatches an operational delivery diagnostic summary straight to the configured Telegram endpoint.
 
 ## Testing & Debugging Details
 
