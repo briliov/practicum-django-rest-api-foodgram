@@ -41,7 +41,7 @@ jobs:
       - name: Run linter
         run: |
           cd backend/
-          python -m flake8
+          ruff check .
       - name: Test with django tests
         env:
           POSTGRES_USER: django_user
