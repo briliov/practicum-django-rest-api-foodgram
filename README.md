@@ -54,7 +54,7 @@ The application is deployed on a virtual private server inside **four isolated c
 
 ```bash
 bash
-git clone https://github.com
+git clone https://github.com/nexordon/foodgram.git
 cd foodgram
 ```
 
