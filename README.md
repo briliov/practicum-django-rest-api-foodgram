@@ -26,8 +26,8 @@ Grocery Assistant: a service for publishing recipes, adding them to favorites, s
 
 * **Project site:** [nexordon.work.gd](https://nexordon.work.gd/)
 * **Server IP address:** [51.250.47.12](https://51.250.47.12)
-* **Admin panel:** [nexordon.work.gd/admin/](https://nexordon.work.gd/)
-* **API Documentation (Redoc):** [nexordon.work.gd/api/docs/](https://work.gd)
+* **Admin panel:** [nexordon.work.gd/admin/](https://nexordon.work.gd/admin/)
+* **API Documentation (Redoc):** [nexordon.work.gd/api/docs/](https://nexordon.work.gd/api/docs/)
 
 ### Author of the project
 
