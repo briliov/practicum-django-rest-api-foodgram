@@ -56,7 +56,14 @@ jobs:
   build-and-push-to-docker-hub:
     strategy:
       matrix:
-        type: [frontend, backend]
+        type: [frontend, backend, nginx]
+        include:
+          - type: frontend
+            path: ./frontend/
+          - type: backend
+            path: ./backend/
+          - type: nginx
+            path: ./infra/
     name: Build ${{ matrix.type }} Docker image and Push to DockerHUB
     runs-on: ubuntu-latest
     needs: [testing-backend]
@@ -71,10 +78,10 @@ jobs:
       - name: Push to DockerHUB
         uses: docker/build-push-action@v4
         with:
-          context: ./${{ matrix.type }}/
+          context: ${{ matrix.path }}
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_${{ matrix.type }}:latest
-          target: ${{ matrix.type == 'backend' && 'production' || '' }}
+          target: ${{ matrix.type == 'backend' && 'production' || null }}
   
   server-deploy:
     name: Deploy on production server
