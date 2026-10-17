@@ -141,7 +141,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.LimitPageNumberPagination",
     "PAGE_SIZE_QUERY_PARAM": "limit",
     "PAGE_SIZE": PAGE_SIZE,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
