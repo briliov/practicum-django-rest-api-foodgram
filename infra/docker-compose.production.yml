@@ -3,6 +3,13 @@ volumes:
   static:
 
 services:
+  init:
+    container_name: init-volumes
+    image: alpine
+    volumes:
+      - static:/mnt/static
+    command: mkdir -p /mnt/static/backend /mnt/static/frontend
+
   database:
     container_name: foodgram-database
     image: postgres:15
@@ -16,37 +23,53 @@ services:
 
   backend:
     container_name: foodgram-backend
-    image: nexordon/foodgram_backend
+    image: nexordon/foodgram_backend:latest
+    env_file: .env
     volumes:
       - type: volume
         source: static
         target: /app/backend
         volume:
           subpath: backend
-    env_file: .env
     depends_on:
+      init:
+        condition: service_completed_successfully
       database:
         condition: service_healthy
 
   frontend:
     container_name: foodgram-frontend
-    image: nexordon/foodgram_frontend
+    image: nexordon/foodgram_frontend:latest
     volumes:
       - type: volume
         source: static
         target: /app/result_build
         volume:
-          subpath: frontend/
+          subpath: frontend
+    depends_on:
+      init:
+        condition: service_completed_successfully
  
   nginx:
     container_name: foodgram-nginx
-    image: nexordon/foodgram_nginx
+    image: nexordon/foodgram_nginx:latest
     ports:
       - 8000:80
     volumes:
-      - static/backend/:/var/www/backend/
-      - static/frontend/:/var/www/frontend/
+      - type: volume
+        source: static
+        target: /var/www/backend
+        volume:
+          subpath: backend
+      - type: volume
+        source: static
+        target: /var/www/frontend
+        volume:
+          subpath: frontend
     depends_on:
-      - database
-      - backend
-      - frontend
+      database:
+        condition: service_healthy
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_started
