@@ -283,10 +283,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=recipe,
         )
         if not created:
-            return Response(
-                {"errors": "Этот рецепт уже добавлен."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError("Этот рецепт уже добавлен.")
         serializer = ShortRecipeSerializer(
             recipe,
             context={"request": request},
@@ -300,10 +297,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=self.get_object(),
         ).delete()
         if not deleted_count:
-            return Response(
-                {"errors": "Рецепт не был добавлен."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError("Рецепт не был добавлен.")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
