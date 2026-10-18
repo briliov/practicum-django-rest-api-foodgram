@@ -63,7 +63,7 @@ class UsersViewSet(UserViewSet):
 
     serializer_class = UserSubscribeSerializer
     pagination_class = LimitPageNumberPagination
-    permission_classes = IsAuthenticatedOrReadOnly
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         """Obtain a sample with annotated and limited data."""
@@ -104,23 +104,17 @@ class UsersViewSet(UserViewSet):
         """Return a user through a request."""
         return self.get_queryset().get(pk=self.request.user.pk)
 
-    # def get_permissions(self):
-    #     """
-    #     Возвращает список разрешений в зависимости от текущего действия
-    #     (action).
-
-    #     Для действий 'me', 'post' и 'update' требуется аутентификация.
-    #     Для остальных действий используются разрешения по умолчанию.
-    #     """
-    #     if self.action in ('me', 'post', 'update'):
-    #         return (permissions.IsAuthenticated(),)
-    #     return super().get_permissions()
+    def get_permissions(self):
+        """Returns a list of permissions depending on the current action"""
+        if self.action in ("me", "post", "update"):
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
 
     @action(
         detail=False,
         methods=("put",),
         url_path="me/avatar",
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=(permissions.IsAuthenticated,),
         serializer_class=AvatarSerializer,
     )
     def change_user_image(self, request):
