@@ -80,6 +80,9 @@ class UsersViewSet(UserViewSet):
         queryset = queryset.annotate(is_subscribed=is_subscribed)
 
         if self.action in ("subscribe", "subscriptions"):
+            if self.action == "subscriptions":
+                queryset = queryset.filter(subscribers__user=self.request.user)
+
             queryset = queryset.annotate(recipes_count=Count("recipes"))
 
             recipes_limit = self.request.query_params.get("recipes_limit")
