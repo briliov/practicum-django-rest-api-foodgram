@@ -158,8 +158,9 @@ class UsersViewSet(UserViewSet):
                 {"error": "Вы не можете подписаться дважды."},
             )
         Following.objects.create(user=self.request.user, following=following)
+        updated_following = get_object_or_404(self.get_queryset(), id=id)
         return Response(
-            self.get_serializer(following).data,
+            self.get_serializer(updated_following).data,
             status=status.HTTP_201_CREATED,
         )
 
