@@ -12,10 +12,11 @@ from django.db.models import (
     Exists,
     OuterRef,
     Prefetch,
-    Subquery,
     Sum,
     Value,
+    Window,
 )
+from django.db.models.functions import RowNumber
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -79,27 +80,40 @@ class UsersViewSet(UserViewSet):
             )
         queryset = queryset.annotate(is_subscribed=is_subscribed)
 
+        if self.action == "subscriptions":
+            queryset = queryset.filter(subscribers__user=self.request.user)
+
         if self.action in ("subscribe", "subscriptions"):
-            if self.action == "subscriptions":
-                queryset = queryset.filter(subscribers__user=self.request.user)
-
             queryset = queryset.annotate(recipes_count=Count("recipes"))
-
             recipes_limit = self.request.query_params.get("recipes_limit")
             if recipes_limit and recipes_limit.isdigit():
-                recipes_subquery = Recipe.objects.filter(
-                    author_id=OuterRef("id"),
-                ).values("id")[: int(recipes_limit)]
+                queryset = queryset.prefetch_related("recipes")
+                limit = int(recipes_limit)
+                subquery = (
+                    Recipe.objects.filter(
+                        author_id=OuterRef(
+                            "author_id",
+                        ),
+                    )
+                    .annotate(
+                        row_num=Window(
+                            expression=RowNumber(),
+                            order_by="-id",
+                        ),
+                    )
+                    .values("pk")
+                )
+                recipes_queryset = Recipe.objects.filter(
+                    pk__in=subquery[:limit],
+                )
+
                 queryset = queryset.prefetch_related(
                     Prefetch(
                         "recipes",
-                        queryset=Recipe.objects.filter(
-                            id__in=Subquery(recipes_subquery),
-                        ),
+                        queryset=recipes_queryset,
+                        to_attr="limited_recipes",
                     ),
                 )
-            else:
-                queryset = queryset.prefetch_related("recipes")
 
         return queryset
 
