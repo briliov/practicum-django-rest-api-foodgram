@@ -18,7 +18,7 @@ from django.db.models import (
 )
 from django.db.models.functions import RowNumber
 from django.http import FileResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import permissions, status, viewsets
@@ -370,9 +370,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
             as_attachment=True,
             filename="shopping_cart.pdf",
         )
-
-
-def redirect_short_link(request, pk):
-    """Redirect page with a short link to the recipe frontend."""
-    recipe = get_object_or_404(Recipe, pk=pk)
-    return redirect(f"/recipes/{recipe.pk}")
