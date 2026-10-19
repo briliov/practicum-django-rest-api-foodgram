@@ -1,11 +1,13 @@
 """Serializers module providing data transformation pipelines for the API."""
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from entities.recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from utils.constants import AMOUNT_MAX_VALUE, AMOUNT_MIN_VALUE
 
 User = get_user_model()
 
@@ -47,11 +49,7 @@ class UserSubscribeSerializer(UserSerializer, AvatarSerializer):
     class Meta(UserSerializer.Meta, AvatarSerializer.Meta):
         """Meta class for UserSubscribeSerializer."""
 
-        fields = (
-            UserSerializer.Meta.fields
-            + AvatarSerializer.Meta.fields
-            + ("is_subscribed",)
-        )
+        fields = UserSerializer.Meta.fields + ("is_subscribed",)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -97,7 +95,10 @@ class WriteIngredientAmountSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all(),
         source="ingredient",
     )
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(
+        min_value=AMOUNT_MIN_VALUE,
+        max_value=AMOUNT_MAX_VALUE,
+    )
 
     class Meta:
         """Meta class for WriteIngredientAmountSerializer."""
@@ -172,17 +173,25 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Validate all data."""
-        for field in ("tags", "ingredients", "image"):
+        for field in ("tags", "ingredients"):
             if field not in attrs:
                 raise serializers.ValidationError(
                     {f"{field}": f"Передача поля {field} обязательна."},
                 )
             value = attrs.get(field)
-            if not value or len(value) == 0:
+            if not value:
                 raise serializers.ValidationError(
                     {field: f"Поле {field} не может быть пустым."},
                 )
         return attrs
+
+    def validate_image(self, value):
+        """Проверка поля image, если оно передано в запросе."""
+        if not value:
+            raise serializers.ValidationError(
+                "Поле image не может быть пустым.",
+            )
+        return value
 
     def validate_tags(self, tags):
         """Validate all tags."""
@@ -214,6 +223,7 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
         )
         RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
+    @transaction.atomic
     def create(self, validated_data):
         """Return created recipe."""
         ingredients_data = validated_data.pop("ingredients")
@@ -225,6 +235,7 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Return updated recipe."""
         ingredients_data = validated_data.pop("ingredients")
@@ -232,7 +243,6 @@ class WriteRecipeSerializer(serializers.ModelSerializer):
 
         instance = super().update(instance, validated_data)
 
-        instance.tags.clear()
         instance.tags.set(tags_data)
 
         instance.recipe_ingredients.all().delete()

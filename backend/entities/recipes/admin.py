@@ -72,7 +72,12 @@ class RecipeAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Get Recipe queryset with annotated favorites count."""
         queryset = super().get_queryset(request)
-        return queryset.annotate(in_favorites_count=Count("favorite_by"))
+        return queryset.annotate(
+            in_favorites_count=Count("favorite_by"),
+        ).prefetch_related(
+            "tags",
+            "ingredients",
+        )
 
     @admin.display(description="Теги")
     def get_tags(self, obj):

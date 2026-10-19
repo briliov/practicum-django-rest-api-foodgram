@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
 
+from utils.constants import USER_NAME_MAX_LENGTH
+
 
 class User(AbstractUser):
     """Custom user model."""
@@ -18,17 +20,17 @@ class User(AbstractUser):
         verbose_name="Пользовательская аватарка",
     )
     first_name = models.CharField(
-        max_length=150,
+        max_length=USER_NAME_MAX_LENGTH,
         blank=False,
         verbose_name="Имя",
     )
     last_name = models.CharField(
-        max_length=150,
+        max_length=USER_NAME_MAX_LENGTH,
         blank=False,
         verbose_name="Фамилия",
     )
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ("username", "first_name", "last_name")
+    REQUIRED_FIELDS = ("username", "first_name", "last_name")  # type: ignore
 
     class Meta:
         """Meta class for model User."""

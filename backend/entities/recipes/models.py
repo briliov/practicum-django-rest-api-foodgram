@@ -73,12 +73,12 @@ class Tag(NamedModel):
 
     name = models.CharField(
         max_length=TAG_NAME_MAX_LENGTH,
-        verbose_name="Имя т",
+        verbose_name="Имя тега",
     )
     slug = models.SlugField(
         max_length=SLUG_MAX_LENGTH_VALUE,
         unique=True,
-        verbose_name="Имя уникального индефикатора",
+        verbose_name="Имя уникального тега",
     )
 
     class Meta(NamedModel.Meta):
@@ -110,7 +110,7 @@ class Recipe(NamedModel):
     ingredients = models.ManyToManyField(
         Ingredient,
         through="RecipeIngredient",
-        verbose_name="Ингедиенты рецепта",
+        verbose_name="Ингедиент рецепта",
     )
     tags = models.ManyToManyField(
         Tag,
@@ -128,13 +128,13 @@ class Recipe(NamedModel):
             ),
             MaxValueValidator(
                 COOKING_MAX_VALUE,
-                message=("Время приготовления не можетбыть больше недели"),
+                message=("Время приготовления не может быть больше недели"),
             ),
         ),
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="Дата добаления рецепта",
+        verbose_name="Дата добавления рецепта",
     )
 
     class Meta(NamedModel.Meta):
@@ -157,7 +157,7 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name="Ингердиенты",
+        verbose_name="Ингердиент",
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name="Количество",
