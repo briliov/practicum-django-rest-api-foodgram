@@ -12,12 +12,13 @@ from django.db.models import (
     Exists,
     OuterRef,
     Prefetch,
-    Subquery,
     Sum,
     Value,
+    Window,
 )
+from django.db.models.functions import RowNumber
 from django.http import FileResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import permissions, status, viewsets
@@ -63,7 +64,7 @@ class UsersViewSet(UserViewSet):
 
     serializer_class = UserSubscribeSerializer
     pagination_class = LimitPageNumberPagination
-    permission_classes = IsAuthenticatedOrReadOnly
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         """Obtain a sample with annotated and limited data."""
@@ -79,24 +80,40 @@ class UsersViewSet(UserViewSet):
             )
         queryset = queryset.annotate(is_subscribed=is_subscribed)
 
+        if self.action == "subscriptions":
+            queryset = queryset.filter(subscribers__user=self.request.user)
+
         if self.action in ("subscribe", "subscriptions"):
             queryset = queryset.annotate(recipes_count=Count("recipes"))
-
             recipes_limit = self.request.query_params.get("recipes_limit")
             if recipes_limit and recipes_limit.isdigit():
-                recipes_subquery = Recipe.objects.filter(
-                    author_id=OuterRef("id"),
-                ).values("id")[: int(recipes_limit)]
+                queryset = queryset.prefetch_related("recipes")
+                limit = int(recipes_limit)
+                subquery = (
+                    Recipe.objects.filter(
+                        author_id=OuterRef(
+                            "author_id",
+                        ),
+                    )
+                    .annotate(
+                        row_num=Window(
+                            expression=RowNumber(),
+                            order_by="-id",
+                        ),
+                    )
+                    .values("pk")
+                )
+                recipes_queryset = Recipe.objects.filter(
+                    pk__in=subquery[:limit],
+                )
+
                 queryset = queryset.prefetch_related(
                     Prefetch(
                         "recipes",
-                        queryset=Recipe.objects.filter(
-                            id__in=Subquery(recipes_subquery),
-                        ),
+                        queryset=recipes_queryset,
+                        to_attr="limited_recipes",
                     ),
                 )
-            else:
-                queryset = queryset.prefetch_related("recipes")
 
         return queryset
 
@@ -104,23 +121,17 @@ class UsersViewSet(UserViewSet):
         """Return a user through a request."""
         return self.get_queryset().get(pk=self.request.user.pk)
 
-    # def get_permissions(self):
-    #     """
-    #     Возвращает список разрешений в зависимости от текущего действия
-    #     (action).
-
-    #     Для действий 'me', 'post' и 'update' требуется аутентификация.
-    #     Для остальных действий используются разрешения по умолчанию.
-    #     """
-    #     if self.action in ('me', 'post', 'update'):
-    #         return (permissions.IsAuthenticated(),)
-    #     return super().get_permissions()
+    def get_permissions(self):
+        """Returns a list of permissions depending on the current action"""
+        if self.action in ("me", "post", "update"):
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
 
     @action(
         detail=False,
         methods=("put",),
         url_path="me/avatar",
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=(permissions.IsAuthenticated,),
         serializer_class=AvatarSerializer,
     )
     def change_user_image(self, request):
@@ -158,8 +169,9 @@ class UsersViewSet(UserViewSet):
                 {"error": "Вы не можете подписаться дважды."},
             )
         Following.objects.create(user=self.request.user, following=following)
+        updated_following = get_object_or_404(self.get_queryset(), id=id)
         return Response(
-            self.get_serializer(following).data,
+            self.get_serializer(updated_following).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -282,10 +294,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=recipe,
         )
         if not created:
-            return Response(
-                {"errors": "Этот рецепт уже добавлен."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError("Этот рецепт уже добавлен.")
         serializer = ShortRecipeSerializer(
             recipe,
             context={"request": request},
@@ -299,10 +308,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=self.get_object(),
         ).delete()
         if not deleted_count:
-            return Response(
-                {"errors": "Рецепт не был добавлен."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError("Рецепт не был добавлен.")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -364,9 +370,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
             as_attachment=True,
             filename="shopping_cart.pdf",
         )
-
-
-def redirect_short_link(request, pk):
-    """Redirect page with a short link to the recipe frontend."""
-    recipe = get_object_or_404(Recipe, pk=pk)
-    return redirect(f"/recipes/{recipe.pk}")

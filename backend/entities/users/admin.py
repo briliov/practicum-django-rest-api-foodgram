@@ -74,3 +74,14 @@ class FollowingAdmin(admin.ModelAdmin):
     """Admin panel interface configurations for managing Following models."""
 
     list_display = ("user", "following")
+    list_filter = ("user__username", "user", "following")
+    search_fields = (
+        "user__email",
+        "user__username",
+        "user__first_name",
+        "user__last_name",
+        "following__email",
+        "following__username",
+        "following__first_name",
+        "following__last_name",
+    )
