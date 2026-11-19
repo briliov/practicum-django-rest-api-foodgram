@@ -126,3 +126,7 @@ To enable automated validations and delivery, make sure to provision the followi
 
 * **API Functional Testing:** The workspace contains preconfigured operational templates available inside the `postman_collection/` directory to run automated tracking assertions using Postman.
 * **Reviewer Remote Infrastructure Access:** Connection strings and server access parameters required to inspect operations on active staging layers are located inside the `tests.yml` configuration mapping file (`login`, `password`, `vm_name`).
+  
+---
+
+#### ✦ Author: **[Egor Briliov](https://github.com)**
