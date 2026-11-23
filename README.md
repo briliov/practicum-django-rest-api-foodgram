@@ -4,6 +4,7 @@
   <a href="https://github.com/briliov?tab=repositories&topic=python"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/python.svg" alt="PYTHON" vspace="4" hspace="3"></a>
   <a href="https://github.com/briliov?tab=repositories&topic=django"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/django.svg" alt="DJANGO" vspace="4" hspace="3"></a>
   <a href="https://github.com/briliov?tab=repositories&topic=djangorest"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/djangorest.svg" alt="DRF" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=pytest"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/pytest.svg" alt="PYTEST" vspace="4" hspace="3"></a>
 <br><br>
   <a href="https://github.com/briliov?tab=repositories&topic=nodejs"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/nodejs.svg" alt="NODEJS" vspace="4" hspace="3"></a>
   <a href="https://github.com/briliov?tab=repositories&topic=css"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/css.svg" alt="CSS" vspace="4" hspace="3"></a>
@@ -21,6 +22,7 @@
   <a href="https://github.com/briliov?tab=repositories&topic=markdown"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/markdown.svg" alt="MARKDOWN" vspace="4" hspace="3"></a>
   <a href="https://github.com/briliov?tab=repositories&topic=powershell"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/powershell.svg" alt="POWERSHELL" vspace="4" hspace="3"></a>
   <a href="https://github.com/briliov?tab=repositories&topic=git"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/git.svg" alt="GIT" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=react"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/react.svg" alt="REACT" vspace="4" hspace="3"></a>
 <!-- TECH_STACK:END -->
 
 
