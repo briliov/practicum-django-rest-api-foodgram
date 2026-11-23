@@ -19,26 +19,26 @@
 ![Git](https://img.shields.io/badge/git-black.svg?style=for-the-badge&logo=git&logoColor=orange)
 
 <!-- TECH_STACK:START -->
-  <a href="https://github.com/briliov?tab=repositories&topic=python"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/python.svg" alt="PYTHON" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=django"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/django.svg" alt="DJANGO" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=djangorest"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/djangorest.svg" alt="DRF" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=python"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/python.svg" alt="PYTHON" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=django"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/django.svg" alt="DJANGO" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=djangorest"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/djangorest.svg" alt="DRF" vspace="4" hspace="3"></a>
 <br><br>
-  <a href="https://github.com/briliov?tab=repositories&topic=nodejs"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/nodejs.svg" alt="NODEJS" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=css"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/css.svg" alt="CSS" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=nodejs"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/nodejs.svg" alt="NODEJS" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=css"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/css.svg" alt="CSS" vspace="4" hspace="3"></a>
 <br><br>
-  <a href="https://github.com/briliov?tab=repositories&topic=postgresql"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/postgresql.svg" alt="POSTGRESQL" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=postgresql"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/postgresql.svg" alt="POSTGRESQL" vspace="4" hspace="3"></a>
 <br><br>
-  <a href="https://github.com/briliov?tab=repositories&topic=jwt"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/jwt.svg" alt="JWT" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=postman"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/postman.svg" alt="POSTMAN" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=jwt"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/jwt.svg" alt="JWT" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=postman"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/postman.svg" alt="POSTMAN" vspace="4" hspace="3"></a>
 <br><br>
-  <a href="https://github.com/briliov?tab=repositories&topic=nginx"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/nginx.svg" alt="NGINX" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=docker"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/docker.svg" alt="DOCKER" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=github-actions"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/github-actions.svg" alt="GITHUB ACTIONS" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=nginx"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/nginx.svg" alt="NGINX" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=docker"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/docker.svg" alt="DOCKER" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=github-actions"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/github-actions.svg" alt="GITHUB ACTIONS" vspace="4" hspace="3"></a>
 <br><br>
-  <a href="https://github.com/briliov?tab=repositories&topic=ruff"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/ruff.svg" alt="RUFF" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=markdown"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/markdown.svg" alt="MARKDOWN" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=powershell"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/powershell.svg" alt="POWERSHELL" vspace="4" hspace="3"></a>
-  <a href="https://github.com/briliov?tab=repositories&topic=git"><img src="https://://github.com//briliov/raw/HEAD/assets/badges/git.svg" alt="GIT" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=ruff"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/ruff.svg" alt="RUFF" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=markdown"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/markdown.svg" alt="MARKDOWN" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=powershell"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/powershell.svg" alt="POWERSHELL" vspace="4" hspace="3"></a>
+  <a href="https://github.com/briliov?tab=repositories&topic=git"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/git.svg" alt="GIT" vspace="4" hspace="3"></a>
 <!-- TECH_STACK:END -->
 
 
