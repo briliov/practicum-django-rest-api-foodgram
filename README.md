@@ -18,6 +18,10 @@
 ![PowerShell](https://img.shields.io/badge/PowerShell-black.svg?style=for-the-badge&logo=gnometerminal&logoColor=1E90FF)
 ![Git](https://img.shields.io/badge/git-black.svg?style=for-the-badge&logo=git&logoColor=orange)
 
+<!-- TECH_STACK:START -->
+<!-- TECH_STACK:END -->
+
+
 ## About
 
 Grocery Assistant: a service for publishing recipes, adding them to favorites, subscribing to authors and generating a consolidated shopping list with the ability to download to PDF.
