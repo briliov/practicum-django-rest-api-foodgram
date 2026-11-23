@@ -1,23 +1,5 @@
 # Foodgram
 
-![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python&logoColor=ffdd54)
-![Django](https://img.shields.io/badge/django-black.svg?style=for-the-badge&logo=django&logoColor=3CB371)
-![DRF](https://img.shields.io/badge/DRF-black?style=for-the-badge&logo=django&logoColor=red)
-![Flake8](https://img.shields.io/badge/Flake8-black.svg?style=for-the-badge&logo=python&logoColor=blue)
-![NodeJS](https://img.shields.io/badge/node_js-black?style=for-the-badge&logo=nodedotjs&logoColor=5FA04E)
-![HTML5](https://img.shields.io/badge/html5-black.svg?style=for-the-badge&logo=html5&logoColor=D2691E)
-![CSS](https://img.shields.io/badge/CSS-black?style=for-the-badge&logo=css&logoColor=9370DB)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-black?style=for-the-badge&logo=postgresql&logoColor=4169E1)
-![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
-![Redoc](https://img.shields.io/badge/Redoc-black?style=for-the-badge&logo=googledocs&logoColor=white)
-![Postman](https://img.shields.io/badge/Postman-black?style=for-the-badge&logo=postman&logoColor=FF6C37)
-![Nginx](https://img.shields.io/badge/nginx-black?style=for-the-badge&logo=nginx&logoColor=009639)
-![Docker](https://img.shields.io/badge/Docker-black?style=for-the-badge&logo=Docker&logoColor=2496ED)
-![GitHub Actions](https://img.shields.io/badge/GITHUB_ACTIONS-black?style=for-the-badge&logo=GITHUB&logoColor=white)
-![Markdown](https://img.shields.io/badge/markdown-%23000000.svg?style=for-the-badge&logo=markdown&logoColor=white)
-![PowerShell](https://img.shields.io/badge/PowerShell-black.svg?style=for-the-badge&logo=gnometerminal&logoColor=1E90FF)
-![Git](https://img.shields.io/badge/git-black.svg?style=for-the-badge&logo=git&logoColor=orange)
-
 <!-- TECH_STACK:START -->
   <a href="https://github.com/briliov?tab=repositories&topic=python"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/python.svg" alt="PYTHON" vspace="4" hspace="3"></a>
   <a href="https://github.com/briliov?tab=repositories&topic=django"><img src="https://raw.githubusercontent.com/briliov/briliov/main/assets/badges/django.svg" alt="DJANGO" vspace="4" hspace="3"></a>
